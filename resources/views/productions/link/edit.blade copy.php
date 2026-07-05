@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mise à jour du dossier</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <style>
+        /* ── Custom styles ── */
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .step-item {
+            cursor: pointer;
+            transition: all .15s;
+            border-left: 3px solid transparent;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #6c757d;
+        }
+
+        .step-item:hover {
+            background: #f7f8fa;
+        }
+
+        .step-item.active {
+            background: #E8F5EE;
+            border-left-color: #0F7B4B;
+            color: #0F7B4B;
+        }
+
+        .step-item.done .step-badge {
+            background: #0F7B4B;
+            color: #fff;
+        }
+
+        .step-badge {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #EAECF0;
+            color: #8A919E;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background .2s, color .2s;
+        }
+
+        .step-item.active .step-badge {
+            background: #0F7B4B;
+            color: #fff;
+        }
+
+        .step-item.active .step-label {
+            color: #0F7B4B;
+            font-weight: 600;
+        }
+
+        .step-check {
+            display: none;
+            margin-left: auto;
+            color: #0F7B4B;
+        }
+
+        .step-item.done .step-check {
+            display: block;
+        }
+
+        .step-section {
+            display: none;
+        }
+
+        .step-section.active {
+            display: block;
+        }
+
+        .cb-box {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #076633;
+            display: inline-block;
+            background: white;
+            margin-right: 4px;
+            border-radius: 3px;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        .cb-box.checked {
+            background: #076633;
+            position: relative;
+        }
+
+        .cb-box.checked::after {
+            content: "✓";
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .yes-no-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: white;
+            padding: 4px 14px;
+            border-radius: 30px;
+            border: 1.5px solid #cbd5e1;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #475569;
+        }
+
+        .yes-no-btn input[type="radio"] {
+            display: none;
+        }
+
+        .yes-no-btn.active-yes {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
+        }
+
+        .yes-no-btn.active-no {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .yes-no-btn:hover {
+            transform: scale(1.03);
+        }
+
+        .summary-wrapper .form-line {
+            border-bottom: 1px solid #c8bfa8;
+            min-height: 16px;
+            padding: 2px 0;
+        }
+
+        .summary-wrapper .cb-box {
+            width: 10px;
+            height: 10px;
+            border: 1.5px solid #076633;
+            display: inline-block;
+            background: white;
+            margin-right: 3px;
+            border-radius: 2px;
+            vertical-align: middle;
+        }
+
+        .summary-wrapper .cb-box.checked {
+            background: #076633;
+            position: relative;
+        }
+
+        .summary-wrapper .cb-box.checked::after {
+            content: "✓";
+            color: white;
+            font-size: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .summary-wrapper .field-line {
+            border-bottom: 1px dashed #c8bfa8;
+            display: inline-block;
+            width: 80px;
+            height: 14px;
+        }
+
+        .summary-wrapper .sig-img {
+            width: 150px;
+        }
+
+        .summary-wrapper .inline-line {
+            border-bottom: 1px dotted #c8bfa8;
+            display: inline-block;
+            width: 100px;
+            height: 14px;
+        }
+
+        .summary-wrapper .short-line {
+            border-bottom: 1px dotted #c8bfa8;
+            display: inline-block;
+            width: 60px;
+            height: 14px;
+        }
+
+        /* Toast animation */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0F7B4B;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .15);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 999;
+        }
+
+        .toast.show {
+            display: flex;
+            animation: slideUp .25s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Champs non modifiables */
+        input[readonly],
+        select[readonly] {
+            background-color: #e9ecef !important;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        /* Cacher les pathologies par défaut */
+        #pathologyGrid {
+            display: none;
+        }
+
+        #pathologyGrid.visible {
+            display: grid;
+        }
+
+        .health-good-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .health-good-container .yes-no-btn {
+            min-width: 80px;
+            justify-content: center;
+        }
+
+        .form-control:focus {
+            border-color: #0F7B4B !important;
+            box-shadow: 0 0 0 0.2rem rgba(15, 123, 75, 0.25) !important;
+        }
+
+        .btn-primary-custom {
+            background-color: #0F7B4B;
+            border-color: #0F7B4B;
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #1a9a60;
+            border-color: #1a9a60;
+            color: white;
+        }
+
+        .btn-outline-custom {
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+
+        .btn-outline-custom:hover {
+            border-color: #0F7B4B;
+            color: #0F7B4B;
+            background-color: transparent;
+        }
+
+        .bg-primary-custom {
+            background-color: #0F7B4B;
+        }
+
+        .text-primary-custom {
+            color: #0F7B4B;
+        }
+
+        .border-primary-custom {
+            border-color: #0F7B4B;
+        }
+
+        .bg-primary-light {
+            background-color: #E8F5EE;
+        }
+
+        /* Style pour l'étape grisée */
+        .step-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .step-item.disabled .step-badge {
+            background: #d1d5db !important;
+            color: #9ca3af !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="bg-white border-bottom border-gray-200 px-4 py-3 d-flex align-items-center gap-3 shadow-sm">
+        <div class="w-9 h-9 bg-primary-custom rounded-lg d-flex align-items-center justify-content-center flex-shrink-0">
+            <svg class="w-5 h-5 fill-white" viewBox="0 0 24 24" style="width:20px;height:20px;fill:white;">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
+            </svg>
+        </div>
+        <span class="text-sm fw-semibold text-gray-800">Mise à jour du dossier</span>
+        <span class="text-xs text-gray-400 ms-auto" id="stepIndicator">Étape 1 / 4</span>
+    </header>
+
+    <div class="container py-4">
+        <div class="row g-4">
+
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="card shadow-sm sticky-top" style="top:20px;">
+                    <div class="card-header bg-white border-bottom">
+                        <span class="text-xs fw-bold text-uppercase tracking-wider text-gray-400">Sections</span>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="step-item active list-group-item list-group-item-action border-0" data-step="1" onclick="goToStep(1)">
+                            <span class="step-badge">1</span>
+                            <span class="step-label small fw-medium">Assuré</span>
+                            <i class="bi bi-check-lg step-check"></i>
+                        </a>
+                        <a href="#" class="step-item list-group-item list-group-item-action border-0" data-step="2" onclick="goToStep(2)">
+                            <span class="step-badge">2</span>
+                            <span class="step-label small fw-medium">Santé</span>
+                            <i class="bi bi-check-lg step-check"></i>
+                        </a>
+                        <a href="#" class="step-item list-group-item list-group-item-action border-0" data-step="3" onclick="goToStep(3)">
+                            <span class="step-badge">3</span>
+                            <span class="step-label small fw-medium">Bénéficiaire</span>
+                            <i class="bi bi-check-lg step-check"></i>
+                        </a>
+                        <a href="#" class="step-item list-group-item list-group-item-action border-0" data-step="4" onclick="goToStep(4)">
+                            <span class="step-badge">4</span>
+                            <span class="step-label small fw-medium">Résumé</span>
+                            <i class="bi bi-check-lg step-check"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main panel -->
+            <div class="col-lg-9">
+                <div class="card shadow-sm">
+                    <!-- Progress bar -->
+                    <div class="progress rounded-0" style="height:4px;">
+                        <div class="progress-bar bg-primary-custom" id="progressFill" style="width:25%"></div>
+                    </div>
+
+                    <!-- ════ STEP 1 — Assuré ════ -->
+                    <div class="step-section active" id="section-1">
+                        <div class="card-header bg-white border-bottom">
+                            <h2 class="h5 fw-bold text-gray-800 mb-0">Informations de l'assuré</h2>
+                            <p class="small text-gray-400 mt-1 mb-0">Identité, coordonnées et pièce d'identité</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="small fw-bold text-uppercase tracking-wider text-primary-custom border-bottom border-primary-light pb-2 mb-4">Identité</div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="small fw-semibold text-gray-500">Civilité <span class="text-danger">*</span></label>
+                                    <input type="text" id="civilite"
+                                        class="form-control form-control-sm"
+                                        value="{{ $contrat->assures[0]->civilite }}"
+                                        readonly
+                                    >
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small fw-semibold text-gray-500">Nom <span class="text-danger">*</span></label>
+                                    <input type="text" id="nom" value="{{$contrat->assures[0]->nom }}" class="form-control form-control-sm" readonly required/>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small fw-semibold text-gray-500">Prénom <span class="text-danger">*</span></label>
+                                    <input type="text" id="prenom" value="{{$contrat->assures[0]->prenom }}" class="form-control form-control-sm" readonly required/>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small fw-semibold text-gray-500">Date de naissance <span class="text-danger">*</span></label>
+                                    <input type="date" id="datenaissance" value="{{ carbon\carbon::parse($contrat->assures[0]->datenaissance)->format('Y-m-d') }}" class="form-control form-control-sm" readonly />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small fw-semibold text-gray-500">Lieu de naissance</label>
+                                    <input type="text" id="lieunaissance" value="{{ $contrat->assures[0]->lieunaissance }}" class="form-control form-control-sm" readonly />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small fw-semibold text-gray-500">Nationalité</label>
+                                    <input type="text" id="nationalite" value="Ivoirienne" class="form-control form-control-sm" readonly />
+                                </div>
+                            </div>
+
+                            <div class="small fw-bold text-uppercase tracking-wider text-primary-custom border-bottom border-primary-light pb-2 mt-4 mb-4">Pièce d'identité <span class="text-danger">*</span></div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="small fw-semibold text-gray-500">Nature de la pièce</label>
+                                    <select id="naturepiece" class="form-select form-select-sm" required>
+                                        <option value="" disabled>— Choisir —</option>
+                                        <option value="CNI" @selected($contrat->assures[0]->naturepiece == 'CNI')>Carte Nationale d'Identité</option>
+                                        <option value="PASSEPORT" @selected($contrat->assures[0]->naturepiece == 'PASSEPORT')>Passeport</option>
+                                        <option value="CARTE_CONSULAIRE" @selected($contrat->assures[0]->naturepiece == 'CARTE_CONSULAIRE')>Carte consulaire</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="small fw-semibold text-gray-500">Numéro de pièce</label>
+                                    <input type="text" id="numeropiece" value="{{$contrat->assures[0]->numeropiece }}" class="form-control form-control-sm" />
+                                </div>
+                            </div>
+
+                            <div class="small fw-bold text-uppercase tracking-wider text-primary-custom border-bottom border-primary-light pb-2 mt-4 mb-4">Coordonnées</div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="small fw-semibold text-gray-500">Lieu de résidence</label>
+                                    <input type="text" id="lieuresidence" value="{{ $contrat->assures[0]->lieuresidence }}, Abidjan" class="form-control form-control-sm" readonly/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-semibold text-gray-500">Profession / Fonction</label>
+                                    <input type="text" id="profession" value="{{ $contrat->assures[0]->profession }}" class="form-control form-control-sm" readonly/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-semibold text-gray-500">Employeur</label>
+                                    <input type="text" id="employeur" value="{{ $contrat->assures[0]->employeur }}" class="form-control form-control-sm" readonly/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-semibold text-gray-500">Mobile <span class="text-danger">*</span></label>
+                                    <input type="tel" id="mobile" name="mobile" value="{{ $contrat->assures[0]->mobile }}" class="form-control form-control-sm" minlength="10" maxlength="10" readonly/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-semibold text-gray-500">Téléphone 2</label>
+                                    <input type="tel" id="tel2" name="telephone" value="{{ $contrat->assures[0]->telephone }}" class="form-control form-control-sm" minlength="10" maxlength="10" readonly/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-semibold text-gray-500">WhatsApp</label>
+                                    <input type="tel" id="whatsapp" value="{{ $contrat->assures[0]->mobile }}" class="form-control form-control-sm" minlength="10" maxlength="10" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="small fw-semibold text-gray-500">Adresse e-mail</label>
+                                    <input type="email" id="email" value="{{ $contrat->assures[0]->email }}" class="form-control form-control-sm" readonly/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ════ STEP 2 — Santé ════ -->
+                    <div class="step-section" id="section-2">
+                        <div class="card-header bg-white border-bottom">
+                            <h2 class="h5 fw-bold text-gray-800 mb-0">État de santé</h2>
+                            <p class="small text-gray-400 mt-1 mb-0">Déclaration de santé et antécédents médicaux</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="small fw-bold text-uppercase tracking-wider text-primary-custom border-bottom border-primary-light pb-2 mb-4">Déclaration de santé « Assuré »</div>
+
+                            <!-- Question santé obligatoire -->
+                            <div class="health-good-container">
+                                <span class="fw-medium">L'assuré déclare être en bonne santé :</span>
+                                <label class="yes-no-btn active-yes ouiBtnData" onclick="setHealthStatus(this, true)">
+                                    <input type="radio" name="healthGood" value="oui" checked />
+                                    <span>Oui</span>
+                                </label>
+                                <label class="yes-no-btn" onclick="setHealthStatus(this, false)">
+                                    <input type="radio" name="healthGood" value="non" />
+                                    <span>Non</span>
+                                </label>
+                            </div>
+
+                            <div id="pathologySection">
+                                <p class="small fw-medium mt-3">L'assuré souffre-t-il de :</p>
+
+                                <div class="row g-3" id="pathologyGrid">
+                                    <div class="col-sm-6">
+                                        <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded border border-gray-200">
+                                            <span class="fw-medium small">🩺 Diabète</span>
+                                            <div class="d-flex gap-1">
+                                                <label class="yes-no-btn" onclick="setPathology(this, 'diabetes', true)">
+                                                    <input type="radio" name="diabetes" value="oui" />
+                                                    <span>Oui</span>
+                                                </label>
+                                                <label class="yes-no-btn active-no" onclick="setPathology(this, 'diabetes', false)">
+                                                    <input type="radio" name="diabetes" value="non" checked />
+                                                    <span>Non</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded border border-gray-200">
+                                            <span class="fw-medium small">🧠 AVC</span>
+                                            <div class="d-flex gap-1">
+                                                <label class="yes-no-btn" onclick="setPathology(this, 'stroke', true)">
+                                                    <input type="radio" name="stroke" value="oui" />
+                                                    <span>Oui</span>
+                                                </label>
+                                                <label class="yes-no-btn active-no" onclick="setPathology(this, 'stroke', false)">
+                                                    <input type="radio" name="stroke" value="non" checked />
+                                                    <span>Non</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded border border-gray-200">
+                                            <span class="fw-medium small">🧬 Cancer</span>
+                                            <div class="d-flex gap-1">
+                                                <label class="yes-no-btn" onclick="setPathology(this, 'cancer', true)">
+                                                    <input type="radio" name="cancer" value="oui" />
+                                                    <span>Oui</span>
+                                                </label>
+                                                <label class="yes-no-btn active-no" onclick="setPathology(this, 'cancer', false)">
+                                                    <input type="radio" name="cancer" value="non" checked />
+                                                    <span>Non</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded border border-gray-200">
+                                            <span class="fw-medium small">🫘 Insuffisance rénale</span>
+                                            <div class="d-flex gap-1">
+                                                <label class="yes-no-btn" onclick="setPathology(this, 'kidneyFailure', true)">
+                                                    <input type="radio" name="kidneyFailure" value="oui" />
+                                                    <span>Oui</span>
+                                                </label>
+                                                <label class="yes-no-btn active-no" onclick="setPathology(this, 'kidneyFailure', false)">
+                                                    <input type="radio" name="kidneyFailure" value="non" checked />
+                                                    <span>Non</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="d-flex align-items-center justify-content-between bg-light p-3 rounded border border-gray-200">
+                                            <span class="fw-medium small">❤️ Hypertension</span>
+                                            <div class="d-flex gap-1">
+                                                <label class="yes-no-btn" onclick="setPathology(this, 'hypertension', true)">
+                                                    <input type="radio" name="hypertension" value="oui" />
+                                                    <span>Oui</span>
+                                                </label>
+                                                <label class="yes-no-btn active-no" onclick="setPathology(this, 'hypertension', false)">
+                                                    <input type="radio" name="hypertension" value="non" checked />
+                                                    <span>Non</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-3 border-top border-dashed border-gray-300">
+                                    <label for="pathologyDetails" class="fw-medium small d-block mb-2">Précisions (optionnel) :</label>
+                                    <textarea id="pathologyDetails" rows="3" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ════ STEP 3 — Bénéficiaire ════ -->
+                    <div class="step-section" id="section-3">
+                        <div class="card-header bg-white border-bottom">
+                            <h2 class="h5 fw-bold text-gray-800 mb-0">Bénéficiaire</h2>
+                            <p class="small text-gray-400 mt-1 mb-0">Personne désignée en cas de sinistre</p>
+                        </div>
+                        <div class="card-body">
+                            <?php 
+                            $childrenCount = $contrat->beneficiaires->where('filiation', 'ENFANT')->count();
+                            ?>
+                            
+                            @if($childrenCount > 0)
+                                <!-- Message lorsque des enfants bénéficiaires existent déjà -->
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Information :</strong> Des bénéficiaires enfants sont déjà enregistrés dans ce contrat.
+                                    <br><small>Veuillez passer à l'étape suivante pour finaliser la mise à jour.</small>
+                                </div>
+                                <div class="text-center py-4">
+                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                                    <p class="mt-2">Nombre d'enfants bénéficiaires enregistrés : <strong>{{ $childrenCount }}</strong></p>
+                                </div>
+                                
+                                <!-- Champ caché pour indiquer qu'il y a des bénéficiaires -->
+                                <input type="hidden" id="hasBeneficiaries" value="1">
+                            @else
+                                <!-- Formulaire des bénéficiaires -->
+                                <div class="border rounded overflow-hidden">
+                                    <div class="bg-light px-4 py-3 border-bottom d-flex align-items-center gap-3">
+                                        <div class="w-6 h-6 rounded-full bg-primary-custom text-white text-xs fw-bold d-flex align-items-center justify-content-center" style="width:24px;height:24px;">1</div>
+                                        <span class="small fw-semibold text-gray-700">Bénéficiaire</span>
+                                    </div>
+                                    <div class="p-4">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="small fw-semibold text-gray-500">Civilité</label>
+                                                <select id="b_civilite" class="form-select form-select-sm">
+                                                    <option value="">— Choisir —</option>
+                                                    <option>M.</option>
+                                                    <option>Mme</option>
+                                                    <option>Mlle</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small fw-semibold text-gray-500">Nom <span class="text-danger">*</span></label>
+                                                <input type="text" id="b_nom" class="form-control form-control-sm" placeholder="Nom" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small fw-semibold text-gray-500">Prénom <span class="text-danger">*</span></label>
+                                                <input type="text" id="b_prenom" class="form-control form-control-sm" placeholder="Prénom" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small fw-semibold text-gray-500">Date de naissance</label>
+                                                <input type="date" id="b_datenaissance" class="form-control form-control-sm" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small fw-semibold text-gray-500">Lieu de naissance</label>
+                                                <input type="text" id="b_lieunaissance" class="form-control form-control-sm" placeholder="Lieu" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small fw-semibold text-gray-500">Lien avec l'adhérent</label>
+                                                <input type="text" id="b_lien" class="form-control form-control-sm" placeholder="Ex: Conjoint, Enfant" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small fw-semibold text-gray-500">Sexe</label>
+                                                <select id="b_sexe" class="form-select form-select-sm">
+                                                    <option value="">— Choisir —</option>
+                                                    <option value="M">Masculin</option>
+                                                    <option value="F">Féminin</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small fw-semibold text-gray-500">Nature pièce</label>
+                                                <select id="b_naturepiece" class="form-select form-select-sm">
+                                                    <option value="">— Choisir —</option>
+                                                    <option>Carte Nationale d'Identité</option>
+                                                    <option>Passeport</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small fw-semibold text-gray-500">N° pièce</label>
+                                                <input type="text" id="b_numeropiece" class="form-control form-control-sm" placeholder="Numéro" />
+                                            </div>
+                                            <div class="col-md-8">
+                                                <label class="small fw-semibold text-gray-500">Adresse</label>
+                                                <input type="text" id="b_adresse" class="form-control form-control-sm" placeholder="Adresse complète" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="small fw-semibold text-gray-500">Téléphone</label>
+                                                <input type="tel" id="b_telephone" class="form-control form-control-sm" placeholder="Téléphone" minlength="10" maxlength="10"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="hasBeneficiaries" value="0">
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- ════ STEP 4 — Résumé ════ -->
+                    <div class="step-section" id="section-4">
+                        <div class="card-header bg-white border-bottom">
+                            <h2 class="h5 fw-bold text-gray-800 mb-0">Résumé du dossier</h2>
+                            <p class="small text-gray-400 mt-1 mb-0">Bulletin de souscription YAKO ASSURANCE VIE</p>
+                        </div>
+                        <div class="card-body bg-light p-0" id="body-4">
+                            <div id="summaryContainer" class="p-4 overflow-x-auto"></div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                        <button class="btn btn-outline-custom btn-sm px-4" id="btnPrev" onclick="prevStep()" style="visibility:hidden">
+                            ← Précédent
+                        </button>
+                        <button class="btn btn-primary-custom btn-sm px-4" id="btnNext" onclick="nextStep()">
+                            Suivant →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="bi bi-check-circle-fill"></i>
+        Dossier soumis avec succès !
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const TOTAL = 4;
+
+        // /* ── Gestion de la santé ── */
+        // function setHealthStatus(element, isHealthy) {
+        //     const container = element.closest('.health-good-container');
+        //     const buttons = container.querySelectorAll('.yes-no-btn');
+
+        //     buttons.forEach(btn => {
+        //         btn.classList.remove('active-yes', 'active-no');
+        //     });
+
+        //     if (isHealthy) {
+        //         container.querySelector('.yes-no-btn:first-child').classList.add('active-yes');
+        //     } else {
+        //         container.querySelector('.yes-no-btn:last-child').classList.add('active-no');
+        //     }
+
+        //     const radio = element.querySelector('input[type="radio"]');
+        //     if (radio) radio.checked = true;
+
+        //     // Afficher ou cacher les pathologies
+        //     const pathologyGrid = document.getElementById('pathologyGrid');
+        //     const pathologySection = document.getElementById('pathologySection');
+            
+        //     if (isHealthy) {
+        //         pathologyGrid.classList.remove('visible');
+        //         // Remettre tous les radios à "Non"
+        //         document.querySelectorAll('#pathologyGrid input[type="radio"][value="non"]').forEach(r => r.checked = true);
+        //         document.querySelectorAll('#pathologyGrid .yes-no-btn').forEach(btn => {
+        //             btn.classList.remove('active-yes', 'active-no');
+        //             if (btn.querySelector('input[value="non"]')) {
+        //                 btn.classList.add('active-no');
+        //             }
+        //         });
+        //     } else {
+        //         pathologyGrid.classList.add('visible');
+        //     }
+        // }
+
+        // /* ── Pathology toggle ── */
+        // function setPathology(element, name, isYes) {
+        //     const item = element.closest('.d-flex');
+        //     const buttons = item.querySelectorAll('.yes-no-btn');
+
+        //     buttons.forEach(btn => {
+        //         btn.classList.remove('active-yes', 'active-no');
+        //     });
+
+        //     if (isYes) {
+        //         item.querySelector('.yes-no-btn:first-child').classList.add('active-yes');
+        //     } else {
+        //         item.querySelector('.yes-no-btn:last-child').classList.add('active-no');
+        //     }
+
+        //     const radio = element.querySelector('input[type="radio"]');
+        //     if (radio) radio.checked = true;
+        // }
+
+        /* ── Gestion de la santé ── */
+        function setHealthStatus(element, isHealthy) {
+            const container = element.closest('.health-good-container');
+            if (!container) {
+                console.error('Container .health-good-container non trouvé');
+                return;
+            }
+            
+            const buttons = container.querySelectorAll('.yes-no-btn');
+            if (!buttons || buttons.length === 0) {
+                console.error('Boutons .yes-no-btn non trouvés');
+                return;
+            }
+
+            buttons.forEach(btn => {
+                btn.classList.remove('active-yes', 'active-no');
+            });
+
+            if (isHealthy) {
+                const firstBtn = container.querySelector('.yes-no-btn:first-child');
+                if (firstBtn) {
+                    firstBtn.classList.add('active-yes');
+                }
+            } else {
+                const lastBtn = container.querySelector('.yes-no-btn:last-child');
+                if (lastBtn) {
+                    lastBtn.classList.add('active-no');
+                }
+            }
+
+            const radio = element.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+            }
+
+            // Afficher ou cacher les pathologies
+            const pathologyGrid = document.getElementById('pathologyGrid');
+            const pathologySection = document.getElementById('pathologySection');
+            
+            if (!pathologyGrid) {
+                console.error('pathologyGrid non trouvé');
+                return;
+            }
+            
+            if (isHealthy) {
+                pathologyGrid.classList.remove('visible');
+                // Remettre tous les radios à "Non"
+                document.querySelectorAll('#pathologyGrid input[type="radio"][value="non"]').forEach(r => r.checked = true);
+                document.querySelectorAll('#pathologyGrid .yes-no-btn').forEach(btn => {
+                    btn.classList.remove('active-yes', 'active-no');
+                    if (btn.querySelector('input[value="non"]')) {
+                        btn.classList.add('active-no');
+                    }
+                });
+            } else {
+                pathologyGrid.classList.add('visible');
+            }
+        }
+
+        /* ── Pathology toggle ── */
+        function setPathology(element, name, isYes) {
+            const item = element.closest('.d-flex');
+            if (!item) {
+                console.error('Élément parent .d-flex non trouvé');
+                return;
+            }
+            
+            const buttons = item.querySelectorAll('.yes-no-btn');
+            if (!buttons || buttons.length === 0) {
+                console.error('Boutons .yes-no-btn non trouvés dans le conteneur');
+                return;
+            }
+
+            buttons.forEach(btn => {
+                btn.classList.remove('active-yes', 'active-no');
+            });
+
+            if (isYes) {
+                const firstBtn = item.querySelector('.yes-no-btn:first-child');
+                if (firstBtn) {
+                    firstBtn.classList.add('active-yes');
+                }
+            } else {
+                const lastBtn = item.querySelector('.yes-no-btn:last-child');
+                if (lastBtn) {
+                    lastBtn.classList.add('active-no');
+                }
+            }
+
+            const radio = element.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+            }
+        }
+
+
+
+        /* ── navigation ── */
+        function goToStep(n) {
+            // Vérifier si l'étape 3 est désactivée
+            if (n === 3) {
+                const hasBeneficiaries = document.getElementById('hasBeneficiaries');
+                if (hasBeneficiaries && hasBeneficiaries.value === '1') {
+                    // Si des bénéficiaires existent, passer directement à l'étape 4
+                    goToStep(4);
+                    return;
+                }
+            }
+            
+            // toggle sections
+            document.querySelectorAll('.step-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`section-${n}`).classList.add('active');
+
+            // sidebar
+            document.querySelectorAll('.step-item').forEach(el => {
+                el.classList.remove('active');
+                if (parseInt(el.dataset.step) === n) el.classList.add('active');
+                if (parseInt(el.dataset.step) < n) el.classList.add('done');
+            });
+            
+            // Gérer la désactivation de l'étape 3 si des bénéficiaires existent
+            const hasBeneficiaries = document.getElementById('hasBeneficiaries');
+            const step3Item = document.querySelector('.step-item[data-step="3"]');
+            if (hasBeneficiaries && hasBeneficiaries.value === '1') {
+                step3Item.classList.add('disabled');
+                step3Item.classList.remove('active', 'done');
+            } else {
+                step3Item.classList.remove('disabled');
+            }
+            
+            currentStep = n;
+            document.getElementById('stepIndicator').textContent = `Étape ${n} / ${TOTAL}`;
+            document.getElementById('progressFill').style.width = `${(n / TOTAL) * 100}%`;
+            document.getElementById('btnPrev').style.visibility = n === 1 ? 'hidden' : 'visible';
+
+            if (n === TOTAL) {
+                document.getElementById('btnNext').textContent = '📋 Soumettre';
+                document.getElementById('btnNext').className = 'btn btn-success btn-sm px-4';
+                generateYakoSummary();
+            } else {
+                document.getElementById('btnNext').textContent = 'Suivant →';
+                document.getElementById('btnNext').className = 'btn btn-primary-custom btn-sm px-4';
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < TOTAL) {
+                // Vérification de la question santé (étape 2)
+                if (currentStep === 2) {
+                    const healthRadio = document.querySelector('input[name="healthGood"]:checked');
+                    if (!healthRadio) {
+                        alert('Veuillez déclarer si l\'assuré est en bonne santé.');
+                        return;
+                    }
+                    
+                    // Vérifier les pathologies si "Non" est sélectionné
+                    if (healthRadio.value === 'non') {
+                        // Vérifier que toutes les pathologies ont été répondues
+                        const pathologyQuestions = ['diabetes', 'stroke', 'cancer', 'kidneyFailure', 'hypertension'];
+                        let allAnswered = true;
+                        for (const p of pathologyQuestions) {
+                            const radios = document.querySelectorAll(`input[name="${p}"]:checked`);
+                            if (radios.length === 0) {
+                                allAnswered = false;
+                                break;
+                            }
+                        }
+                        if (!allAnswered) {
+                            alert('Veuillez répondre à toutes les questions sur les pathologies.');
+                            return;
+                        }
+                    }
+                }
+                
+                // Vérifier si on passe à l'étape 3 et si elle est désactivée
+                if (currentStep + 1 === 3) {
+                    const hasBeneficiaries = document.getElementById('hasBeneficiaries');
+                    if (hasBeneficiaries && hasBeneficiaries.value === '1') {
+                        // Passer directement à l'étape 4
+                        goToStep(4);
+                        return;
+                    }
+                }
+                
+                goToStep(currentStep + 1);
+            } else {
+                submitForm();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) goToStep(currentStep - 1);
+        }
+
+        /* ── Generate YAKO Summary ── */
+        function generateYakoSummary() {
+            const container = document.getElementById('summaryContainer');
+
+            // Get form values
+            const civilite = document.getElementById('civilite').value || 'M.';
+            const nom = document.getElementById('nom').value || 'KOUASSI';
+            const prenom = document.getElementById('prenom').value || 'Jean';
+            const datenaissance = document.getElementById('datenaissance').value || '1985-06-15';
+            const lieunaissance = document.getElementById('lieunaissance').value || 'Abidjan';
+            const nationalite = document.getElementById('nationalite').value || 'Ivoirienne';
+            const naturepiece = document.getElementById('naturepiece').value || 'CNI';
+            const numeropiece = document.getElementById('numeropiece').value || '----';
+            const lieuresidence = document.getElementById('lieuresidence').value || '---';
+            const profession = document.getElementById('profession').value || '---';
+            const mobile = document.getElementById('mobile').value || '+225 07 00 00 00 00';
+            const tel2 = document.getElementById('tel2').value || '+225 05 00 00 00 00';
+            const whatsapp = document.getElementById('whatsapp').value || '+225 07 00 00 00 00';
+            const email = document.getElementById('email').value || '-----';
+
+            // Pathologies
+            const pathologies = {
+                diabetes: 'Diabète',
+                stroke: 'AVC',
+                cancer: 'Cancer',
+                kidneyFailure: 'Insuff. Rénale',
+                hypertension: 'Hypertension'
+            };
+
+            let pathoRows = '';
+            let pathoData = [];
+            for (const [key, label] of Object.entries(pathologies)) {
+                const radio = document.querySelector(`input[name="${key}"]:checked`);
+                const value = radio ? radio.value : 'non';
+                pathoData.push({ label, value });
+            }
+
+            for (let i = 0; i < pathoData.length; i += 2) {
+                const p1 = pathoData[i];
+                const p2 = pathoData[i + 1] || { label: '', value: '' };
+                pathoRows += `
+                    <tr>
+                        <td class="py-1">${p1.label} <span class="cb-box ${p1.value === 'oui' ? 'checked' : ''}"></span> Oui <span class="cb-box ${p1.value === 'non' ? 'checked' : ''}"></span> Non</td>
+                        ${p2.label ? `<td class="py-1">${p2.label} <span class="cb-box ${p2.value === 'oui' ? 'checked' : ''}"></span> Oui <span class="cb-box ${p2.value === 'non' ? 'checked' : ''}"></span> Non</td>` : '<td></td>'}
+                    </tr>
+                `;
+            }
+
+            // Beneficiary data
+            const b_nom = document.getElementById('b_nom')?.value || '';
+            const b_prenom = document.getElementById('b_prenom')?.value || '';
+            const b_lien = document.getElementById('b_lien')?.value || '';
+            const b_telephone = document.getElementById('b_telephone')?.value || '';
+            const b_adresse = document.getElementById('b_adresse')?.value || '';
+
+            const summaryHTML = `
+            <div class="summary-wrapper bg-white border rounded overflow-hidden" style="font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #1e1e1e;">
+                <div class="p-4 border-top border-4 border-primary-custom">
+                    <!-- HEADER -->
+                    <table class="w-100 border-bottom border-2 border-primary-custom pb-2 mb-3">
+                        <tr>
+                            <td style="width:25%;">
+                                <img src="data:image/jpg;base64,{{ base64_encode(file_get_contents(public_path('root/images/logo.png'))) }}" alt="Logo" style="width: 70px; margin-bottom: 10px">
+                            </td>
+                            <td style="width:50%; text-align:center;">
+                                <div class="h5 fw-bold text-primary-custom">Formulaire d'adhésion</div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- SECTION 1 -->
+                    <table class="w-100 border mb-2">
+                        <tr><td class="bg-primary-custom text-white fw-bold px-3 py-1">1. Informations du Souscripteur / Adhérent / Assuré — Option : Individuel</td></tr>
+                        <tr><td class="p-3">
+                            <table class="w-100">
+                                <tr><td colspan="3" class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Nom et Prénom</label><div class="form-line">${nom} ${prenom}</div></td></tr>
+                                <tr>
+                                    <td style="width:25%;" class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Date de naissance</label><div class="form-line">${datenaissance}</div></td>
+                                    <td style="width:25%;" class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Lieu de naissance</label><div class="form-line">${lieunaissance}</div></td>
+                                    <td style="width:25%;" class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Nationalité</label><div class="form-line">${nationalite}</div></td>
+                                    <td style="width:25%;" class="pb-1">
+                                        <label class="small text-uppercase fw-semibold text-gray-500 d-block">Sexe</label>
+                                        <div>
+                                            <span class="d-inline-flex align-items-center me-3"><span class="cb-box ${civilite === 'M' ? 'checked' : ''}"></span> M</span>
+                                            <span class="d-inline-flex align-items-center"><span class="cb-box ${civilite === 'Mme' ? 'checked' : ''}"></span> F</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Fonction</label><div class="form-line">${profession}</div></td>
+                                    <td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Type de pièce</label><div class="form-line">${naturepiece}</div></td>
+                                    <td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">N° de pièce</label><div class="form-line">${numeropiece}</div></td>
+                                </tr>
+                                <tr><td colspan="4" class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Adresse complète</label><div class="form-line">${lieuresidence}</div></td></tr>
+                                <tr>
+                                    <td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Tél 1</label><div class="form-line">${mobile}</div></td>
+                                    <td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Tél 2</label><div class="form-line">${tel2}</div></td>
+                                    <td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">WhatsApp</label><div class="form-line">${whatsapp}</div></td>
+                                    <td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">E-mail</label><div class="form-line">${email}</div></td>
+                                </tr>
+                            </table>
+                        </td></tr>
+                    </table>
+
+                    <!-- SECTIONS 2 + 3 -->
+                    <div class="row g-2">
+                        <div class="col-md-7">
+                            <table class="w-100 border">
+                                <tr><td class="bg-primary-custom text-white fw-bold px-3 py-1">2. Déclaration de Santé « Assuré »</td></tr>
+                                <tr><td class="p-3">
+                                    <div class="mb-2"><span class="d-inline-flex align-items-center"><span class="cb-box checked"></span> L'assuré déclare être en bonne santé.</span></div>
+                                    <p class="small mb-1">L'assuré souffre-t-il de :</p>
+                                    <table class="w-100">
+                                        ${pathoRows}
+                                    </table>
+                                </td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-5">
+                            <table class="w-100 border">
+                                <tr><td class="bg-primary-custom text-white fw-bold px-3 py-1">3. Couverture Souhaitée</td></tr>
+                                <tr><td class="p-3">
+                                    <table class="w-100">
+                                        <tr><td class="text-gray-500 fw-semibold">Choix Capital</td><td class="text-end fw-bold text-danger"><span class="field-line">4 000 000 FCFA</span></td></tr>
+                                        <tr><td class="text-gray-500 fw-semibold border-top py-1">Prime Periodique</td><td class="text-end fw-bold text-danger border-top py-1"><span class="field-line">16 900 FCFA</span></td></tr>
+                                        <tr><td class="text-gray-500 fw-semibold border-top py-1">Surprime</td><td class="text-end fw-bold text-danger border-top py-1"><span class="field-line">0 FCFA</span></td></tr>
+                                        <tr class="bg-primary-custom"><td class="text-warning fw-bold py-1">Total Prime</td><td class="text-end text-warning fw-bold py-1"><span class="field-line">16 900 FCFA</span></td></tr>
+                                    </table>
+                                </td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- MODALITÉ -->
+                    <div class="bg-primary-custom text-white py-1 px-3 my-2">
+                        <div class="d-flex flex-wrap gap-4">
+                            <span class="fw-bold small text-uppercase">Modalité de paiement : <span class="d-inline-flex align-items-center"><span class="cb-box checked"></span> annuel</span></span>
+                            <span class="fw-bold small text-uppercase">Durée : 1 an</span>
+                            <span class="fw-bold small text-uppercase">Debut de contrat : <span class="field-line">01/07/2026</span></span>
+                        </div>
+                    </div>
+
+                    <!-- BÉNÉFICIAIRES -->
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <table class="w-100 border">
+                                <tr><td class="bg-primary-custom text-white fw-bold px-3 py-1">4. Bénéficiaire Désigné</td></tr>
+                                <tr><td class="p-3">
+                                    <table class="w-100">
+                                        <tr><td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Nom et Prénoms</label><div class="form-line">${b_prenom} ${b_nom}</div></td></tr>
+                                        <tr><td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Lien avec l'adhérent</label><div class="form-line">${b_lien}</div></td></tr>
+                                        <tr><td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Téléphone</label><div class="form-line">${b_telephone}</div></td></tr>
+                                        <tr><td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Adresse</label><div class="form-line">${b_adresse}</div></td></tr>
+                                    </table>
+                                </td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="w-100 border">
+                                <tr><td class="bg-primary-custom text-white fw-bold px-3 py-1">5. Bénéficiaire par défaut</td></tr>
+                                <tr><td class="p-3">
+                                    <table class="w-100">
+                                        <tr><td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Nom et Prénoms</label><div class="form-line">Fonds de soutien aux études et à la formation des orphélins</div></td></tr>
+                                        <tr><td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Lien avec l'adhérent</label><div class="form-line">Employeur</div></td></tr>
+                                        <tr><td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Téléphone</label><div class="form-line">____________________</div></td></tr>
+                                        <tr><td class="pb-1"><label class="small text-uppercase fw-semibold text-gray-500 d-block">Adresse</label><div class="form-line">____________________</div></td></tr>
+                                    </table>
+                                </td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ENFANTS -->
+                    <table class="w-100 border mt-2">
+                        <tr><td class="bg-primary-custom text-white fw-bold px-3 py-1">6. Enfants Scolarisés (Maximum 5)</td></tr>
+                        <tr><td class="p-3">
+                            <table class="w-100">
+                                <thead>
+                                    <tr class="bg-primary-custom text-warning">
+                                        <th class="small text-uppercase fw-semibold p-1 text-start">N°</th>
+                                        <th class="small text-uppercase fw-semibold p-1 text-start">Nom et Prénoms</th>
+                                        <th class="small text-uppercase fw-semibold p-1 text-start">Date naissance</th>
+                                        <th class="small text-uppercase fw-semibold p-1 text-start">Niveau d'etude</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($contrat->beneficiaires as $index => $beneficiaire)
+                                        <tr>
+                                            <td class="text-primary-custom fw-bold text-center py-1">{{ $index + 1 }}</td>
+                                            <td>{{ $beneficiaire->nom ?? '' }} {{ $beneficiaire->prenom ?? '' }}</td>
+                                            <td>{{ carbon\carbon::parse($beneficiaire->date_naissance)->format('d/m/Y') ?? '' }}</td>
+                                            <td>{{ $beneficiaire->bp ?? '' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </td></tr>
+                    </table>
+
+                    <!-- PAIEMENT -->
+                    <table class="w-100 border mt-2">
+                        <tr><td class="bg-primary-custom text-white fw-bold px-3 py-1">Paiement des Primes</td></tr>
+                        <tr><td class="p-3">
+                            <p class="small mb-1">Le montant total des primes est payé par :</p>
+                            <ul class="list-unstyled m-0">
+                                <li class="py-1 border-bottom border-dashed small">Le Souscripteur (DGTCP) <span class="text-gray-400">Le versement étant effectué par l'intermédiaire du Fonds d'Entraide des Agents du Trésor.</span></li>
+                            </ul>
+                        </td></tr>
+                    </table>
+                </div>
+            </div>
+            `;
+
+            container.innerHTML = summaryHTML;
+        }
+
+        /* ── Submit ── */
+        function submitForm() {
+            // Vérifier que la question santé est répondue
+            const healthRadio = document.querySelector('input[name="healthGood"]:checked');
+            if (!healthRadio) {
+                alert('Veuillez déclarer si l\'assuré est en bonne santé.');
+                goToStep(2);
+                return;
+            }
+
+            const subBtn = document.getElementById('btnNext');
+            subBtn.disabled = true;
+            subBtn.textContent = '⏳ Soumission en cours...';
+
+            const formData = {};
+
+            // Assuré
+            formData.civilite = document.getElementById('civilite').value;
+            formData.nom = document.getElementById('nom').value;
+            formData.prenom = document.getElementById('prenom').value;
+            formData.datenaissance = document.getElementById('datenaissance').value;
+            formData.lieunaissance = document.getElementById('lieunaissance').value;
+            formData.nationalite = document.getElementById('nationalite').value;
+            formData.naturepiece = document.getElementById('naturepiece').value;
+            formData.numeropiece = document.getElementById('numeropiece').value;
+            formData.lieuresidence = document.getElementById('lieuresidence').value;
+            formData.profession = document.getElementById('profession').value;
+            formData.employeur = document.getElementById('employeur').value;
+            formData.mobile = document.getElementById('mobile').value;
+            formData.tel2 = document.getElementById('tel2').value;
+            formData.whatsapp = document.getElementById('whatsapp').value;
+            formData.email = document.getElementById('email').value;
+            formData.healthGood = healthRadio.value;
+
+            // Pathologies
+            const pathologies = ['diabetes', 'stroke', 'cancer', 'kidneyFailure', 'hypertension'];
+            pathologies.forEach(p => {
+                const radio = document.querySelector(`input[name="${p}"]:checked`);
+                formData[p] = radio ? radio.value : 'non';
+            });
+            formData.pathologyDetails = document.getElementById('pathologyDetails').value;
+
+            // Beneficiary (seulement si pas de bénéficiaires existants)
+            const hasBeneficiaries = document.getElementById('hasBeneficiaries');
+            if (hasBeneficiaries && hasBeneficiaries.value === '0') {
+                formData.beneficiary = {
+                    civilite: document.getElementById('b_civilite').value,
+                    nom: document.getElementById('b_nom').value,
+                    prenom: document.getElementById('b_prenom').value,
+                    datenaissance: document.getElementById('b_datenaissance').value,
+                    lieunaissance: document.getElementById('b_lieunaissance').value,
+                    lien: document.getElementById('b_lien').value,
+                    sexe: document.getElementById('b_sexe').value,
+                    naturepiece: document.getElementById('b_naturepiece').value,
+                    numeropiece: document.getElementById('b_numeropiece').value,
+                    adresse: document.getElementById('b_adresse').value,
+                    telephone: document.getElementById('b_telephone').value
+                };
+            } else {
+                formData.beneficiary = null;
+            }
+
+            console.log('📤 Données soumises:', formData);
+
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            axios.defaults.headers.common['X-CSRF-TOKEN'] = token;
+            axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+
+            axios.post('{{ route('link.update', ['id' => $contrat->id]) }}', formData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                console.log('📥 Données réponses:', response.data);
+
+                if (response.data.status === 'success') {
+                    const toast = document.getElementById('toast');
+                    toast.classList.add('show');
+                    subBtn.disabled = false;
+                    subBtn.textContent = 'Soumettre';
+
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 4000);
+                    window.location.href = '/link/success/' + {{ $contrat->id }};
+                }
+            })
+            .catch(error => {
+                console.error('Erreur :', error);
+
+                if (error.response) {
+                    console.log(error.response.data);
+                }
+            });
+        }
+
+        /* ── init ── */
+        // document.addEventListener('DOMContentLoaded', function() {
+            
+        //     // Initialiser les boutons Oui/Non santé
+        //     const healthContainer = document.querySelector('.health-good-container');
+        //     const ouiBtn = healthContainer.querySelector('.yes-no-btn:first-child');
+        //     ouiBtn.classList.add('active-yes');
+
+        //     // Cacher les pathologies par défaut
+        //     document.getElementById('pathologyGrid').classList.remove('visible');
+
+        //     // Initialiser les boutons des pathologies avec "Non" actif
+        //     document.querySelectorAll('#pathologyGrid .yes-no-btn:last-child').forEach(btn => {
+        //         btn.classList.add('active-no');
+        //     });
+            
+        //     // Vérifier si des bénéficiaires existent
+        //     const hasBeneficiaries = document.getElementById('hasBeneficiaries');
+        //     if (hasBeneficiaries && hasBeneficiaries.value === '1') {
+        //         // Désactiver l'étape 3
+        //         const step3Item = document.querySelector('.step-item[data-step="3"]');
+        //         if (step3Item) {
+        //             step3Item.classList.add('disabled');
+        //             step3Item.style.pointerEvents = 'none';
+        //             step3Item.style.opacity = '0.5';
+        //         }
+        //     }
+        // });
+
+        /* ── Init ── */
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM chargé - Initialisation de la page');
+            
+            // Initialiser les boutons Oui/Non santé
+            const healthContainer = document.querySelector('.health-good-container');
+            if (healthContainer) {
+                const ouiBtn = healthContainer.querySelector('.yes-no-btn:first-child');
+                // const ouiBtn = document.getElementById('ouiBtnData');
+                if (ouiBtn) {
+                    ouiBtn.classList.add('active-yes');
+                    console.log('Bouton Oui initialisé avec succès');
+                } else {
+                    console.warn('Bouton Oui non trouvé');
+                }
+            } else {
+                console.warn('Container .health-good-container non trouvé');
+            }
+
+            // Cacher les pathologies par défaut
+            const pathologyGrid = document.getElementById('pathologyGrid');
+            if (pathologyGrid) {
+                pathologyGrid.classList.remove('visible');
+                console.log('Pathologies cachées par défaut');
+            } else {
+                console.warn('PathologyGrid non trouvé');
+            }
+
+            // Initialiser les boutons des pathologies avec "Non" actif
+            const pathologyButtons = document.querySelectorAll('#pathologyGrid .yes-no-btn:last-child');
+            if (pathologyButtons.length > 0) {
+                pathologyButtons.forEach(btn => {
+                    btn.classList.add('active-no');
+                });
+                console.log(`${pathologyButtons.length} boutons de pathologies initialisés`);
+            } else {
+                console.warn('Aucun bouton de pathologie trouvé');
+            }
+        });
+    </script>
+
+</body>
+
+</html>
+
+
