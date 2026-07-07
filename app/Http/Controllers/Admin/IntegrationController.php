@@ -422,8 +422,10 @@ class IntegrationController extends Controller
 
             /**
              * MTN : 05XXXXXXXX
+             * Orange : 07XXXXXXXX
              */
-            if (preg_match('/^0?5\d{8}$/', $phone)) {
+            // if (preg_match('/^0?5\d{8}$/', $phone)) {
+            if (preg_match('/^0?[57]\d{8}$/', $phone)) {
 
                 // Conversion au format international
                 $phone = '+225' . substr($phone, -10);
@@ -439,7 +441,7 @@ class IntegrationController extends Controller
 
             } else {
 
-                // Orange, Moov...
+                // autres fournisseurs, Moov...
                 $response = Http::post('https://apimain.yakoafricassur.com/api/send-sms', [
                     'phone'   => $phone,
                     'message' => $message,
