@@ -36,9 +36,9 @@
                     <form action="{{ route('prod.index') }}" method="get">
                         <select id="statusFilter" name="etape" class="form-select">
                             <option value="">Tous les statuts</option>
-                            <option value="0">Saisie non achevée</option>
-                            <option value="1">Saisie non transmise</option>
-                            <option value="2">Transmis</option>
+                            {{-- <option value="0">Saisie non achevée</option> --}}
+                            <option value="1">Lien Envoyé</option>
+                            <option value="2">Accord donné</option>
                             <option value="3">Accepté</option>
                             <option value="4">Rejeté</option>
                         </select>
@@ -71,26 +71,32 @@
                         @forelse ($datas['allPropositionsFiltered'] as $item)
                         <tr class="articleByCat" data-status="{{ strtolower($item->etape) }}">
                             <td>{{ $item->id }}</td>
-                            <td>{{ $item->libelleproduit ?? "" }}</td>
+                            {{-- <td>{{ $item->libelleproduit ?? "" }}</td> --}}
+                            {{-- <td>Tresor Prevoyance</td> --}}
                             <td>{{ $item->adherent->nom ?? "" }} {{ $item->adherent->prenom ?? "" }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->adherent->datenaissance)->locale('fr')->translatedFormat('d M Y') ?? '' }}</td>
+                            <td>{{ count($item->beneficiaires) ?? 0 }}</td>
+                            <td>{{ $item->adherent->datenaissance ?? '' }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->dateeffet)->locale('fr')->translatedFormat('d M Y') ?? '' }}</td>
                             <td>{{ $item->prime ?? "" }}</td>
                             <td>{{ $item->capital ?? 0 }}</td>
-                            <td>{{ $item->montantrente ?? 0 }}</td>
-                            <td>{{ $item->user->membre->nom ?? "" }} {{ $item->user->membre->prenom ?? "" }}</td>
+                            {{-- <td>{{ $item->montantrente ?? 0 }}</td>
+                            <td>{{ $item->user->membre->nom ?? "" }} {{ $item->user->membre->prenom ?? "" }}</td> --}}
                             <td>
                                 @if ($item->etape == '0')
 									<div class="badge rounded-pill text-secondary bg-light-secondary p-2 text-uppercase px-3"><i class='bx bxs-circle me-1'></i>Saisie non achevée</div>
 								@elseif ($item->etape == '1')
-									<div class="badge rounded-pill text-info bg-light-info p-2 text-uppercase px-3"><i class='bx bxs-circle me-1'></i>Saisie Non Transmis</div>
+									<div class="badge rounded-pill text-info bg-light-info p-2 text-uppercase px-3"><i class='bx bxs-circle me-1'></i>Lien envoyé</div>
 								@elseif ($item->etape == '2')
-									<div class="badge rounded-pill text-primary bg-light-primary p-2 text-uppercase px-3"><i class='bx bxs-circle me-1'></i>Transmis</div>
+									<div class="badge rounded-pill text-primary bg-light-primary p-2 text-uppercase px-3"><i class='bx bxs-circle me-1'></i>Accord donné</div>
 								@elseif ($item->etape == '3')
 									<div class="badge rounded-pill text-success bg-light-success p-2 text-uppercase px-3"><i class='bx bxs-circle me-1'></i>Accepté</div>
 								@elseif ($item->etape == '4')
 									<div class="badge rounded-pill text-danger bg-light-danger p-2 text-uppercase px-3"><i class='bx bxs-circle me-1'></i>Rejeté</div>
 								@endif
+                            </td>
+
+                            <td>
+                                {{ Str::limit($item->details, 10)}}
                             </td>
                             
                             @foreach ($activeColumns as $colKey)

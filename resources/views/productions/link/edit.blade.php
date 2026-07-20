@@ -377,7 +377,7 @@
                                                             <tr>
                                                                 <td class="text-primary-custom fw-bold text-center">{{ $index + 1 }}</td>
                                                                 <td>{{ $beneficiaire->nom ?? '' }} {{ $beneficiaire->prenom ?? '' }}</td>
-                                                                <td>{{ \Carbon\Carbon::parse($beneficiaire->date_naissance)->format('d/m/Y') ?? '' }}</td>
+                                                                <td>{{ \Carbon\Carbon::parse($beneficiaire->datenaissance)->format('d/m/Y') ?? '' }}</td>
                                                                 <td>{{ $beneficiaire->bp ?? '' }}</td>
                                                             </tr>
                                                         @empty
@@ -391,10 +391,9 @@
                                         </div>
                                     </div>
 
-
                                     <!-- PAIEMENT -->
                                     <table class="w-100 border mt-2">
-                                        <tr><td class="bg-primary-custom text-white fw-bold px-3 py-1">Paiement des Primes</td></tr>
+                                        <tr><td class="bg-primary-custom text-white fw-bold px-3 py-1"> 3. Paiement des Primes</td></tr>
                                         <tr><td class="p-3">
                                             <p class="small mb-1">Le montant total des primes est payé par :</p>
                                             <ul class="list-unstyled m-0">
@@ -402,6 +401,15 @@
                                             </ul>
                                         </td></tr>
                                     </table>
+
+                                    <div class="col-12 mt-4 card section-card border">
+                                        <div class="card-header py-2 px-3">
+                                            <i class="bi bi-loop me-1"></i> 4. Observations 
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <textarea name="observe" id="observe" class="form-control" cols="15" rows="5" placeholder="Saisissez vos observations ici..."></textarea>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -460,7 +468,8 @@
                     mobile: document.getElementById('mobile')?.value || '',
                     tel2: document.getElementById('tel2')?.value || '',
                     whatsapp: document.getElementById('whatsapp')?.value || '',
-                    email: document.getElementById('email')?.value || ''
+                    email: document.getElementById('email')?.value || '',
+                    observe: document.getElementById('observe')?.value || '',
                 };
             }
 

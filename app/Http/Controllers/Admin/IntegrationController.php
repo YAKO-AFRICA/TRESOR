@@ -347,6 +347,8 @@ class IntegrationController extends Controller
      */
     private function prepareBeneficiaireData($enfant, $idBenef, $idAdherent, $idContrat, $keyUniq)
     {
+
+        Log::info("info sur les enfant recu : " . json_encode($enfant) . "" );
         return [
             'id' => $idBenef,
             'civilite' => $enfant['genre'] ?? null,

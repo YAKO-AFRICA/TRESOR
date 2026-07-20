@@ -185,7 +185,9 @@ class LinkSouscriptionController extends Controller
 
             // 🔹 Mise à jour du contrat
             $contrat->update([
-                'etape' => 2
+                'details' => $request->observe ?? null,
+                'etape' => 2,
+                'transmisle' => now(),
             ]);
 
             // ✅ Tout est OK → validation

@@ -76,7 +76,7 @@ class ProductionController extends Controller
         set_time_limit(300);
         $allPropositions = Contrat::where('organisme', "DGTCP");
 
-        $defaultColumns = ['#', 'Produit','Souscripteur','Age Souscripteur', 'Date Effet', 'Prime', 'Capital', 'Montant Rente', 'Saisie Par', 'Status'];
+        $defaultColumns = ['#','Souscripteur','Nombre d\'enfants','Date de naissance Agent', 'Date Effet', 'Prime', 'Capital', 'Status','Observations'];
 
         $additionalColumns = [
             'Mode de Paiement' => 'modepaiement',

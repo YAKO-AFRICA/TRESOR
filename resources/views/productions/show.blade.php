@@ -58,7 +58,7 @@
                         <div class="bs-stepper-circle">1</div>
                         <div class="">
                             <h5 class="mb-0 steper-title @if ($contrat->etape == 1)
-                                text-primary @endif">En Saisie</h5>
+                                text-primary @endif">Lien envoyé</h5>
                             <p class="mb-0 steper-sub-title">{{ $contrat->saisiele ?? ''}}</p>
                         </div>
                     </div>
@@ -69,7 +69,7 @@
                     <div class="bs-stepper-circle">2</div>
                     <div class="">
                         <h5 class="mb-0 steper-title @if ($contrat->etape == 2)
-                                text-primary @endif">Transmise</h5>
+                                text-primary @endif">Accord donné</h5>
                         <p class="mb-0 steper-sub-title">{{ $contrat->transmisle ?? ''}}</p>
                     </div>
                     </div>
@@ -111,12 +111,12 @@
                             <i class='bx bx-folder me-2'></i><span>Détails du contrat</span>
                         </a>
                         <a href="javascript:;" class="list-group-item py-1 btn border-0" data-target="edit-adherent">
-                            <i class='bx bx-devices me-2'></i><span>Adhérent</span>
+                            <i class='bx bx-devices me-2'></i><span>Agent concerné</span>
                         </a>
-                        <a href="javascript:;" class="list-group-item py-1 btn border-0" data-target="edit-assurer">
-                            <i class='bx bx-analyse me-2'></i><span>Assurés</span>
-                        </a><a href="javascript:;" class="list-group-item py-1 btn border-0" data-target="edit-questionnaire">
-                            <i class='bx bx-heart me-2'></i><span>Etat de sante</span>
+                        {{-- <a href="javascript:;" class="list-group-item py-1 btn border-0" data-target="edit-assurer">
+                            <i class='bx bx-analyse me-2'></i><span>Assurés</span> --}}
+                        {{-- </a><a href="javascript:;" class="list-group-item py-1 btn border-0" data-target="edit-questionnaire">
+                            <i class='bx bx-heart me-2'></i><span>Etat de sante</span> --}}
                         <a href="javascript:;" class="list-group-item py-1 btn border-0" data-target="edit-beneficiaire">
                             <i class='bx bx-plug me-2'></i><span>Bénéficiaires</span>
                         </a>
@@ -130,14 +130,14 @@
 
         </div>
 
-        <div class="card">
+        <div class="card d-none">
             <div class="card-body">
 
                 <h5 class="mb-0 font-weight-bold">Documents joints </h5>
 
                 <div class="mt-3"></div>
 
-                @if (count($contrat->documents) > 0)
+                {{-- @if (count($contrat->documents) > 0)
 
                     @foreach ($contrat->documents as $doc)
 
@@ -182,7 +182,6 @@
 
                                     <div class="modal-body" style="width: 100%; height: 80vh">
 
-                                        {{-- <iframe style="width: 100%; height: 100%" src="{{ asset('documents/files/'.$doc->filename) }}" frameborder="0"></iframe> --}}
                                         <iframe style="width: 100%; height: 100%" src="{{ url('storage/documents/' . $doc->filename) }}" frameborder="0"></iframe>
 
                                     </div>
@@ -198,7 +197,7 @@
                     @endforeach
                 @else
                     <p class="text-secondary">Aucun document joint</p>
-                @endif
+                @endif --}}
             </div>
         </div>
     </div>
@@ -322,7 +321,7 @@
                 <section id="edit-adherent" class="section-content d-none">
                     <fieldset class="border p-3">
 
-                        <legend class="float-none w-auto px-2"><small>Adhérent</small></legend>
+                        <legend class="float-none w-auto px-2"><small>Agent du tresor</small></legend>
                         <div class="my-3">
                             <strong class=""><label class="form-label">Civilité :</label></strong>
                             <span class="">{{ $contrat->adherent->civilite ?? 'Non renseigné' }}</span>
@@ -360,7 +359,7 @@
                                     <label class="form-label">Date de naissance :</label>
                                 </strong>
 
-                                <span>{{ Carbon\Carbon::parse($contrat->adherent->datedenaissance)->locale('fr')->translatedFormat('d F Y') ?? 'Non renseigné' }}</span>
+                                <span>{{ Carbon\Carbon::parse($contrat->adherent->datenaissance)->locale('fr')->translatedFormat('d F Y') ?? 'Non renseigné' }}</span>
 
                             </div>
 
@@ -536,7 +535,7 @@
                     </fieldset>
                 </section>
 
-                <section id="edit-assurer" class="section-content d-none">
+                {{-- <section id="edit-assurer" class="section-content d-none">
                     <fieldset>
                         <legend class="float-none w-auto px-2"><small>Assurés</small></legend>
 
@@ -623,74 +622,7 @@
                             @endif
                         </div>
                     </fieldset>
-                </section>
-
-                <section id="edit-questionnaire" class="section-content d-none">
-                    @if ($contrat->codeproduit == "yke_2008" || $contrat->codeproduit == "yke_2012")
-                        <span>Questionnaire yako</span>
-                    @else
-
-                    <fieldset class="border rounded p-3">
-                        <legend class="float-none w-auto px-2 text-primary fw-bold">
-                            <small><i class="bi bi-heart-pulse"></i> Questionnaire Médical</small>
-                        </legend>
-
-                        {{-- Infos physiques --}}
-                        <div class="row mb-3">
-                            <div class="col-md-4 mb-2">
-                                <strong>Taille :</strong>
-                                <span class="ms-2">{{ $contrat->santes->taille ?? '--' }} cm</span>
-                            </div>
-
-                            <div class="col-md-4 mb-2">
-                                <strong>Poids :</strong>
-                                <span class="ms-2">{{ $contrat->santes->poids ?? '--' }} kg</span>
-                            </div>
-
-                            <div class="col-md-4 mb-2">
-                                <strong>Tension :</strong>
-                                <span class="ms-2">
-                                    {{ $contrat->santes->tensionMin ?? '--' }} /
-                                    {{ $contrat->santes->tensionMax ?? '--' }} mmHg
-                                </span>
-                            </div>
-                        </div>
-
-                        @php
-                            $santeFields = [
-                                'diabetes' => "Diabète",
-                                'hypertension' => "Hypertension",
-                                'sickleCell' => "Drépanocytose",
-                                'liverCirrhosis' => "Cirrhose du foie",
-                                'lungDisease' => "Maladie pulmonaire",
-                                'cancer' => "Cancer",
-                                'anemia' => "Anémie",
-                                'kidneyFailure' => "Insuffisance rénale",
-                                'stroke' => "AVC",
-                                'smoking' => "Fumeur",
-                                'alcohol' => "Consommation d’alcool",
-                                'sport' => "Pratique sportive",
-                                'accident' => "Accident récent",
-                                'treatment' => "Traitement médical (6 derniers mois)",
-                                'transSang' => "Transfusion sanguine (6 derniers mois)",
-                                'interChirugiale' => "Intervention chirurgicale subie",
-                                'prochaineInterChirugiale' => "Prochaine intervention prévue",
-                            ];
-                        @endphp
-
-                        <div class="row">
-                            @foreach ($santeFields as $field => $label)
-                                <div class="col-md-6 mb-2 d-flex justify-content-between border-bottom pb-1">
-                                    <span>{{ $label }}</span>
-                                    <span class="badge {{ ($contrat->santes->$field ?? 'Non') == 'Oui' ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $contrat->santes->$field ?? 'Non' }}
-                                    </span>
-                                </div>
-                            @endforeach
-                        </div>
-                    </fieldset>
-                    @endif
-                </section>
+                </section> --}}
 
                 <section id="edit-beneficiaire" class="section-content d-none">
                     <fieldset>
@@ -733,7 +665,7 @@
                                         @foreach ($contrat->beneficiaires as $beneficiaire)
                                             <tr>
                                                 <td>{{ $beneficiaire->nom ?? '--' }} {{ $beneficiaire->prenom ?? '--' }}</td>
-                                                <td>{{ Carbon\Carbon::parse($beneficiaire->datedenaissance)->locale('fr')->translatedFormat('d F Y') ?? 'Non renseigné' }}</td>
+                                                <td>{{ Carbon\Carbon::parse($beneficiaire->datenaissance)->locale('fr')->translatedFormat('d F Y') ?? 'Non renseigné' }}</td>
                                                 <td>{{ $beneficiaire->lieunaissance ?? '--' }}</td>
                                                 <td>{{ $beneficiaire->lieuresidence ?? '--' }}</td>
                                                 <td>{{ $beneficiaire->filiation ?? '--' }}</td>
@@ -768,7 +700,7 @@
                                             <div class="row g-2 mb-2">
                                                 <div class="col-6">
                                                     <small class="text-muted">Né(e) le</small>
-                                                    <div>{{ Carbon\Carbon::parse($beneficiaire->datedenaissance)->locale('fr')->translatedFormat('d F Y') ?? 'Non renseigné' }}</div>
+                                                    <div>{{ Carbon\Carbon::parse($beneficiaire->datenaissance)->locale('fr')->translatedFormat('d F Y') ?? 'Non renseigné' }}</div>
                                                 </div>
                                                 <div class="col-6">
                                                     <small class="text-muted">Taux</small>
@@ -824,82 +756,20 @@
                     <fieldset>
                         <legend class="float-none w-auto px-2"><small>Informations complémentaires</small></legend>
 
-                        <div class="row mb-3">
-                            <div class="div col">
-                                <strong>Organisme</strong>
-                                <span>{{ $contrat->organisme ?? 'Non renseigné' }}</span>
-                            </div>
-                            <div class="div col">
-                                <strong>Date de saisie</strong>
-                                <span>{{ $contrat->saisiele ?? 'Non renseigné' }}</span>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="div col">
-                                <strong>Saisie par </strong>
-                                <span>{{ $contrat->nomagent ?? 'Non renseigné' }}</span>
-                            </div>
-                            <div class="div col">
-                                <strong>Code Agent</strong>
-                                <span>{{ $contrat->codeConseiller ?? 'Non renseigné' }}</span>
-                            </div>
-                        </div>
                         <div class="row my-3">
                             <div class="div col">
-                                <strong>Modifié le </strong>
-                                <span>{{ $contrat->modifierle ?? '--' }}</span>
+                                <strong>Matricule de l'agent </strong>
+                                <span>{{ $contrat->numerocompte ?? 'Non renseigné' }}</span>
                             </div>
                             <div class="div col">
-                                <strong>Modifié par</strong>
-                                <span>{{ $contrat->modifierpar ?? 'Non renseigné' }}</span>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="div col">
-                                <strong>Transmise le </strong>
-                                <span>{{ $contrat->transmisle ?? '--' }}</span>
-                            </div>
-                            <div class="div col">
-                                <strong>Transmise par</strong>
-                                <span>{{ $contrat->transmispar ?? 'Non renseigné' }}</span>
-                            </div>
-                        </div>
-                        <div class="row my-3">
-                            <div class="div col">
-                                <strong>Accepté le </strong>
-                                <span>{{ $contrat->accepterle ?? '--' }}</span>
-                            </div>
-                            <div class="div col">
-                                <strong>Accepté par</strong>
-                                <span>{{ $contrat->accepterpar ?? 'Non renseigné' }}</span>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="div col">
-                                <strong>Rejeté le </strong>
-                                <span>{{ $contrat->annulerle ?? '--' }}</span>
-                            </div>
-                            <div class="div col">
-                                <strong>Rejeté par</strong>
-                                <span>{{ $contrat->rejeterpar ?? 'Non renseigné' }}</span>
-                            </div>
-                        </div>
-                        <div class="row my-3">
-                            <div class="div col">
-                                <strong>Est migrée </strong>
-                                <span>{{ $contrat->estMigre ? 'Oui' : 'Non' }}</span>
-                            </div>
-                            <div class="div col">
-                                <strong>Transmise par</strong>
-                                <span>{{ $contrat->codeConseiller ?? 'Non renseigné' }}</span>
+                                <strong>Accord donné le </strong>
+                                <span>{{ $contrat->transmisle ?? 'Non renseigné' }}</span>
                             </div>
                         </div>
 
                         <div class="col-12 form-group mt-3">
-                            <label for="" class="form-label">Observations(Motif du rejet)</label>
-                            <textarea name="" class="form-control" id="" rows="3" readonly>
-                                {{ $contrat->motifrejet ?? '' }}
-                            </textarea>
+                            <label for="" class="form-label">Observations(remarques de l'agent)</label>
+                            <textarea name="" class="form-control" id="" rows="3" readonly>{{ $contrat->details ?? '' }}</textarea>
                         </div>
                     </fieldset>
                 </section>
