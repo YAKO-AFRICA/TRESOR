@@ -136,6 +136,8 @@ class IntegrationController extends Controller
             //     }
             // });
 
+            Log::info($assures);
+
             $this->prepareInsertData($assures, $enfants);
 
             // Nettoyer la session après validation
@@ -145,6 +147,7 @@ class IntegrationController extends Controller
                 ->with('success', 'Les données ont été validées avec succès !');
 
         } catch (\Exception $e) {
+            Log::error("Erreur lors de la validation des données : " . $e->getMessage());
             return redirect()->route('integrations.index')
                 ->with('error', 'Erreur lors de la validation : ' . $e->getMessage());
         }
@@ -167,6 +170,9 @@ class IntegrationController extends Controller
                 $maxContratId = Contrat::max('id') ?? 0;
                 $maxAssureId = Assurer::max('id') ?? 0;
                 $maxBenefId = Beneficiaire::max('id') ?? 0;
+
+                Log::info("insertion dans prepare insert data");
+                Log::info($assures);
                 
                 $key = now()->format('Ymd');
                 $keyUniq = "LPREVO_" . $key . "_" . uniqid();
@@ -175,6 +181,7 @@ class IntegrationController extends Controller
                 $enfantsByMatricule = collect($enfants)->groupBy('matricule');
                 
                 foreach($assures as $index => $assure) {
+                    Log::info("trattement de l'assuré {$assure['matricule']} === NOM {$assure['nom']} === PRENOMS {$assure['prenoms']}");
                     // Incrémenter les IDs
                     $idAdherent = ++$maxAdherentId;
                     $idContrat = ++$maxContratId;
@@ -184,7 +191,7 @@ class IntegrationController extends Controller
                     $enfantsAssure = $enfantsByMatricule->get($assure['matricule'], collect())->values()->toArray();
                     
                     // Préparer les données de l'adhérent
-                    $adherentData = $this->prepareAdherentData($assure, $keyUniq);
+                    $adherentData = $this->prepareAdherentData($assure, $keyUniq,$idAdherent);
                     
                     // Créer l'adhérent
                     $adherent = Adherent::create($adherentData);
@@ -198,7 +205,7 @@ class IntegrationController extends Controller
                     Log::info("Contrat créé - ID: {$contrat->id}, Adhérent: {$idAdherent}");
                     
                     // Préparer les données de l'assuré
-                    $assureData = $this->prepareAssureData($assure, $idAdherent, $idContrat, $keyUniq);
+                    $assureData = $this->prepareAssureData($assure, $idAdherent, $idContrat, $keyUniq,$idAssure);
                     
                     // Créer l'assuré
                     $assurePrincipal = Assurer::create($assureData);
@@ -240,9 +247,10 @@ class IntegrationController extends Controller
     /**
      * Préparer les données de l'adhérent
      */
-    private function prepareAdherentData($assure, $keyUniq)
+    private function prepareAdherentData($assure, $keyUniq,$idAdherent)
     {
         return [
+            'id' => $idAdherent,
             'civilite' => $assure['genre'] ?? null,
             'nom' => $assure['nom'] ?? '',
             'prenom' => $assure['prenoms'] ?? '',
@@ -310,9 +318,10 @@ class IntegrationController extends Controller
     /**
      * Préparer les données de l'assuré
      */
-    private function prepareAssureData($assure, $idAdherent, $idContrat, $keyUniq)
+    private function prepareAssureData($assure, $idAdherent, $idContrat, $keyUniq, $idAssure)
     {
         return [
+            'id' => $idAssure,
             'civilite' => $assure['genre'] ?? null,
             'nom' => $assure['nom'] ?? '',
             'prenom' => $assure['prenoms'] ?? '',
