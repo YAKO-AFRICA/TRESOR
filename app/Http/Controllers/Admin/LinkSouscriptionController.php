@@ -116,7 +116,7 @@ class LinkSouscriptionController extends Controller
                 Log::info("debut envoie otp");
                 $OTP_API = config('services.otp_api');
                 // dd($OTP_API);
-                
+
                 $sendOtp = Http::post(''.$OTP_API.'api/send-otp' , [
                     'telIndicatif' => "225",
                     'telephone' => $adherent->mobile,
@@ -155,10 +155,10 @@ class LinkSouscriptionController extends Controller
         try {
            $matricule = $data;
            $contrat = Contrat::where('numerocompte', $matricule)->where('refcontratsource', $matricule)->first();
-           
+
         } catch (\Throwable $th) {
             throw $th;
-            
+
             return redirect()->response([
                 'status' => 'error',
                 'message' => 'Contrat non trouver' . $th->getMessage(),
@@ -221,11 +221,11 @@ class LinkSouscriptionController extends Controller
     public function success($id)
     {
         $contrat = Contrat::with('assures')->find($id);
-        
+
         if (!$contrat) {
             abort(404);
         }
-        
+
         return view('productions.link.success', compact('contrat'));
     }
 

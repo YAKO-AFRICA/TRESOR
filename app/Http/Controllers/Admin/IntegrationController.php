@@ -52,9 +52,9 @@ class IntegrationController extends Controller
             $assuresImport = new AssuresImport();
 
             Log::info($request->file('file_assures'));
-            
+
             Excel::import($assuresImport, $request->file('file_assures'));
-            
+
             $assures = $assuresImport->getData();
             $assuresErreurs = $assuresImport->getErreurs();
             // Log::info('Assurés importés: ' . count($assures) . ', Erreurs: ' . count($assuresErreurs));
@@ -100,7 +100,7 @@ class IntegrationController extends Controller
     {
         $assures = Session::get('integration_assures', []);
         $enfants = Session::get('integration_enfants', []);
-        
+
 
         if (empty($assures)) {
             return redirect()->route('integrations.index')
@@ -123,19 +123,6 @@ class IntegrationController extends Controller
                     })->toArray());
             }
 
-            // Ici vous pouvez ajouter la logique d'enregistrement en base de données
-            // DB::transaction(function() use ($assures, $enfants) {
-            //     foreach($assures as $assure) {
-            //         // Enregistrer l'assuré
-            //         $assureModel = Assure::create($assure);
-            //         // Enregistrer ses enfants
-            //         $enfantsAssure = collect($enfants)->where('matricule', $assure['matricule']);
-            //         foreach($enfantsAssure as $enfant) {
-            //             $assureModel->enfants()->create($enfant);
-            //         }
-            //     }
-            // });
-
             Log::info($assures);
 
             $this->prepareInsertData($assures, $enfants);
@@ -156,7 +143,7 @@ class IntegrationController extends Controller
     public function annuler()
     {
         Session::forget(['integration_assures', 'integration_enfants', 'integration_rapport']);
-        
+
         return redirect()->route('integrations.index')
             ->with('success', 'Les données chargées ont été annulées.');
     }
@@ -173,57 +160,57 @@ class IntegrationController extends Controller
 
                 Log::info("insertion dans prepare insert data");
                 Log::info($assures);
-                
+
                 $key = now()->format('Ymd');
                 $keyUniq = "LPREVO_" . $key . "_" . uniqid();
-                
-                // Grouper les enfants par matricule 
+
+                // Grouper les enfants par matricule
                 $enfantsByMatricule = collect($enfants)->groupBy('matricule');
-                
+
                 foreach($assures as $index => $assure) {
                     Log::info("trattement de l'assuré {$assure['matricule']} === NOM {$assure['nom']} === PRENOMS {$assure['prenoms']}");
                     // Incrémenter les IDs
-                    $idAdherent = ++$maxAdherentId;
-                    $idContrat = ++$maxContratId;
-                    $idAssure = ++$maxAssureId;
-                    
+                    $idAdherent =  Adherent::max('id') + 1 ?? 0;
+                    $idContrat = Contrat::max('id') + 1 ?? 0;
+                    $idAssure = Assurer::max('id') + 1 ?? 0;
+
                     // Récupérer les enfants de cet assuré
                     $enfantsAssure = $enfantsByMatricule->get($assure['matricule'], collect())->values()->toArray();
-                    
+
                     // Préparer les données de l'adhérent
                     $adherentData = $this->prepareAdherentData($assure, $keyUniq,$idAdherent);
-                    
+
                     // Créer l'adhérent
                     $adherent = Adherent::create($adherentData);
                     Log::info("Adhérent créé - ID: {$adherent->id}, Matricule: {$assure['matricule']}");
-                    
+
                     // Préparer les données du contrat
                     $contratData = $this->prepareContratData($assure, $idAdherent, $keyUniq);
-                    
+
                     // Créer le contrat
                     $contrat = Contrat::create($contratData);
                     Log::info("Contrat créé - ID: {$contrat->id}, Adhérent: {$idAdherent}");
-                    
+
                     // Préparer les données de l'assuré
                     $assureData = $this->prepareAssureData($assure, $idAdherent, $idContrat, $keyUniq,$idAssure);
-                    
+
                     // Créer l'assuré
                     $assurePrincipal = Assurer::create($assureData);
                     Log::info("Assuré créé - ID: {$assurePrincipal->id}, Contrat: {$idContrat}");
-                    
+
                     // Créer les bénéficiaires (enfants)
                     if (!empty($enfantsAssure)) {
                         foreach($enfantsAssure as $enfant) {
                             $idBenef = ++$maxBenefId;
-                            
+
                             $benefData = $this->prepareBeneficiaireData(
-                                $enfant, 
-                                $idBenef, 
-                                $idAdherent, 
-                                $idContrat, 
+                                $enfant,
+                                $idBenef,
+                                $idAdherent,
+                                $idContrat,
                                 $keyUniq
                             );
-                            
+
                             $beneficiaire = Beneficiaire::create($benefData);
                             Log::info("Bénéficiaire créé - ID: {$beneficiaire->id}, Enfant: {$enfant['nom']} {$enfant['prenoms']}");
                         }
@@ -234,9 +221,9 @@ class IntegrationController extends Controller
                 }
 
                 Log::info("Transaction terminée avec succès - " . count($assures) . " assurés traités");
-                
+
             }, 5); // Retry 5 fois en cas de deadlock
-            
+
         } catch (\Throwable $th) {
             Log::error("Erreur lors de la transaction : " . $th->getMessage());
             Log::error($th->getTraceAsString());
@@ -387,16 +374,16 @@ class IntegrationController extends Controller
         if (empty($date)) {
             return null;
         }
-        
+
         try {
             if ($date instanceof \DateTime) {
                 return $date->format('Y-m-d');
             }
-            
+
             if (is_string($date)) {
                 return Carbon::parse($date)->format('Y-m-d');
             }
-            
+
             return null;
         } catch (\Exception $e) {
             Log::warning("Erreur de formatage de date : " . $e->getMessage());
