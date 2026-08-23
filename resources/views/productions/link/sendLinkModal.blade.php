@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
         phoneInput.classList.remove('is-invalid');
 
         // Message
-        const message = `Bonjour ${adhrentInfo.prenom} ${adhrentInfo.nom}, Veuillez procéder à votre souscription en cliquant ce lien ci-dessous : ${SOUSCRIPTION_URL}`;
+        const message = `Bonjour ${adhrentInfo.nom}, Veuillez procéder à votre souscription en cliquant ce lien ci-dessous : ${SOUSCRIPTION_URL}`;
 
         // Vérification longueur (155 caractères max)
         if (message.length > 155) {
