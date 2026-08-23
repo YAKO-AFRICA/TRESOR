@@ -523,6 +523,7 @@ Route::prefix('link')->name('link.')->group(function(){
         Route::get('/edit/{data}', [LinkSouscriptionController::class, 'edit'])->name('edit');
         Route::post('/update/{id}', [LinkSouscriptionController::class, 'update'])->name('update');
         Route::get('/success/{id}', [LinkSouscriptionController::class, 'success'])->name('success');
+        Route::post('/remarckStore', [LinkSouscriptionController::class, 'remarckStore'])->name('remarckStore');
     });
 
     Route::middleware(['auth','PreventBackHistory'])->group(function () {

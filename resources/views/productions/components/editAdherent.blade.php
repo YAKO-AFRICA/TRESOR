@@ -10,35 +10,35 @@
             @endphp
 
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="civilite" id="inlineRadio1" value="Madame" 
-                       autocomplete="on" required data-invalid-message="Veuillez cocher la civilité" 
-                       {{ $civilite === 'Madame' ? 'checked' : '' }}>
+                <input class="form-check-input" type="radio" name="civilite" id="inlineRadio1" value="F"
+                       autocomplete="on" required data-invalid-message="Veuillez cocher la civilité"
+                       {{ $civilite === 'F' ? 'checked' : '' }}>
                 <label class="form-check-label" for="inlineRadio1">Madame</label>
             </div>
 
             <div class="form-check form-check-inline">
 
-                <input class="form-check-input" type="radio" name="civilite" id="inlineRadio2" value="Mademoiselle" 
+                <input class="form-check-input" type="radio" name="civilite" id="inlineRadio2" value="Mme"
 
-                       autocomplete="on" required {{ $civilite === 'Mademoiselle' ? 'checked' : '' }}>
+                       autocomplete="on" required {{ $civilite === 'Mme' ? 'checked' : '' }}>
 
                 <label class="form-check-label" for="inlineRadio2">Mademoiselle</label>
 
             </div>
 
-            
+
 
             <div class="form-check form-check-inline">
 
-                <input class="form-check-input" type="radio" name="civilite" id="inlineRadio3" value="Monsieur" 
+                <input class="form-check-input" type="radio" name="civilite" id="inlineRadio3" value="M"
 
-                       autocomplete="on" required {{ $civilite === 'Monsieur' ? 'checked' : '' }}>
+                       autocomplete="on" required {{ $civilite === 'M' ? 'checked' : '' }}>
 
                 <label class="form-check-label" for="inlineRadio3">Monsieur</label>
 
             </div>
 
-        
+
 
             @error('civilite')
 
@@ -46,7 +46,7 @@
 
             @enderror
 
-        </div>        
+        </div>
 
     </div>
 
@@ -107,7 +107,7 @@
 
                 <option selected value="{{ $contrat->adherent->lieunaissance ?? ''}}">{{ $contrat->adherent->lieunaissance ?? ''}}</option>
 
-            
+
 
                 {{-- @foreach($villes as $ville)
 
@@ -135,7 +135,7 @@
 
             <br>
 
-        
+
 
             @php
 
@@ -143,11 +143,11 @@
 
             @endphp
 
-        
+
 
             <div class="form-check form-check-inline">
 
-                <input class="form-check-input" type="radio" name="naturepiece" id="CNI" value="CNI" 
+                <input class="form-check-input" type="radio" name="naturepiece" id="CNI" value="CNI"
 
                        autocomplete="on" required {{ $naturepiece === 'CNI' ? 'checked' : '' }}>
 
@@ -155,11 +155,11 @@
 
             </div>
 
-        
+
 
             <div class="form-check form-check-inline">
 
-                <input class="form-check-input" type="radio" name="naturepiece" id="Atestation" value="AT" 
+                <input class="form-check-input" type="radio" name="naturepiece" id="Atestation" value="AT"
 
                        autocomplete="on" required {{ $naturepiece === 'AT' ? 'checked' : '' }}>
 
@@ -167,11 +167,11 @@
 
             </div>
 
-        
+
 
             <div class="form-check form-check-inline">
 
-                <input class="form-check-input" type="radio" name="naturepiece" id="Passport" value="Passport" 
+                <input class="form-check-input" type="radio" name="naturepiece" id="Passport" value="Passport"
 
                        autocomplete="on" required {{ $naturepiece === 'Passport' ? 'checked' : '' }}>
 
@@ -179,7 +179,7 @@
 
             </div>
 
-        
+
 
             @error('naturepiece')
 
@@ -187,8 +187,8 @@
 
             @enderror
 
-        </div> 
-        <input type="hidden" name="contrat_id" value="{{ $contrat->id ?? ''}}">       
+        </div>
+        <input type="hidden" name="contrat_id" value="{{ $contrat->id ?? ''}}">
 
         <div class="col-12 col-lg-4">
 
@@ -392,7 +392,7 @@
 
                 <div class="input-group mb-3">
 
-                    <input type="text" name="contactpersonneressource" value="{{ $contrat->contactpersonneressource ?? ''}}" class="form-control" aria-label="Text input with select" required>
+                    <input type="tel" name="contactpersonneressource" value="{{ $contrat->contactpersonneressource ?? ''}}" class="form-control" aria-label="Text input with select" minlength="10" maxlength="15" required>
 
                 </div>
 
@@ -418,7 +418,7 @@
 
                 <div class="input-group mb-3">
 
-                    <input type="text" name="contactpersonneressource2" value="{{ $contrat->contactpersonneressource2 ?? ''}}" class="form-control" aria-label="Text input with select">
+                    <input type="tel" name="contactpersonneressource2" value="{{ $contrat->contactpersonneressource2 ?? ''}}" class="form-control" aria-label="Text input with select" minlength="10" maxlength="15">
 
                 </div>
 
@@ -457,14 +457,14 @@
             .then(data => {
                 const villeSelect = document.getElementById('lieuresidence');
                 const lieuSelect = document.getElementById('lieunaissance');
-                
+
                 data.forEach(ville => {
                     // Option pour lieu de résidence
                     const optionVille = document.createElement('option');
                     optionVille.value = ville.MonLibelle;
                     optionVille.textContent = ville.MonLibelle;
                     villeSelect.appendChild(optionVille);
-                    
+
                     // Option pour lieu de naissance
                     const optionLieu = document.createElement('option');
                     optionLieu.value = ville.MonLibelle;
@@ -472,13 +472,13 @@
                     lieuSelect.appendChild(optionLieu);
 
                 });
-                
+
                 // Si le code stocké n'est pas trouvé dans l'API, garder l'affichage original
                 if (!selectedVilleFound) {
-                    villeSelect.insertAdjacentHTML('afterbegin', 
+                    villeSelect.insertAdjacentHTML('afterbegin',
                         `<option selected value="${lieuResidenceCode}">${lieuResidenceCode}</option>`);
                 }
-                
+
                 if (!selectedLieuFound) {
                     lieuSelect.insertAdjacentHTML('afterbegin',
                         `<option selected value="${lieuNaissanceCode}">${lieuNaissanceCode}</option>`);
@@ -490,16 +490,16 @@
             .then(data => {
                 const professionSelect = document.getElementById('profession');
                 let selectedProfessionFound = false;
-                
+
                 data.forEach(profession => {
                     const optionProfession = document.createElement('option');
                     optionProfession.value = profession.CodeProfession;
                     optionProfession.textContent = profession.MonLibelle;
                     professionSelect.appendChild(optionProfession);
-                    
-                  
+
+
                 });
-                
+
                 if (!selectedProfessionFound) {
                     professionSelect.insertAdjacentHTML('afterbegin',
                         `<option selected value="${professionCode}">${professionCode}</option>`);

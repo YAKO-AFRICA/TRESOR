@@ -39,10 +39,10 @@
                     </div>
                     <div class="col-12">
                         <label for="datenaissance" class="form-label">Date de naissance</label>
-                        <input type="date" id="datenaissanceBenef" class="form-control" name="datenaissanceBenef" value="{{ $beneficiaire->datenaissance ?? '' }}">
+                        <input type="date" id="datenaissanceBenef" class="form-control" name="datenaissanceBenef" value="{{ Carbon\Carbon::parse($beneficiaire->datenaissance)->format('Y-m-d') ?? '' }}">
                     </div>
 
-                    <div class="row g-3 mb-3">
+                    <div class="row g-3 mb-3 mt-3">
 
                         <div class="col-12 col-lg-6">
 
@@ -54,9 +54,9 @@
 
                                 @foreach($villes as $ville)
 
-                                    <option value="{{ $ville->libelleVillle }}">{{ $ville->libelleVillle }}</option> 
+                                    <option value="{{ $ville->libelleVillle }}">{{ $ville->libelleVillle }}</option>
 
-                                @endforeach 
+                                @endforeach
 
                             </select>
 
@@ -115,7 +115,7 @@
 
                     </div>
 
-                    <div class="row g-3 mb-3">
+                    {{-- <div class="row g-3 mb-3">
 
                         <div class="col-12">
 
@@ -125,7 +125,7 @@
 
                         </div>
 
-                    </div>
+                    </div> --}}
 
                     {{-- <input type="hidden" name="contrat" value="{{ $pret->id }}"> --}}
 
@@ -137,7 +137,7 @@
 
                     </div>
 
-                </form> 
+                </form>
 
             </div>
 

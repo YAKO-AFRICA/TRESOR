@@ -14,7 +14,7 @@
         <div class="row g-3 mt-3">
             <div class="card col" style="min-height: 60px">
                 <div class="card-header">
-                    <p>Au terme du contrat 
+                    <p>Au terme du contrat
                         <span class="float-end">
                             <button id="editBtnBeneficiaireauterme" type="button" class="btn btn-sm btn-outline-primary border-0 fs-6">
                                 <i class="bx bx-edit"></i>
@@ -37,7 +37,7 @@
                     </form>
                 </div>
             </div>
-            
+
             <div class="card col" style="min-height: 60px">
                 <div class="card-header">
                     <p>En cas de décès avant le terme
@@ -48,7 +48,7 @@
                         </span>
                     </p>
                 </div>
-                    
+
                 <div class="card-body text-uppercase">
                     <div class="col" id="auDecesText">{{ $contrat->beneficiaireaudeces ?? 'Non renseigné' }}</div>
                     <form style="display: none;" id="auDecesForm">
@@ -87,8 +87,8 @@
 
                                 <th scope="col">Filiation</th>
                                 <th scope="col">Téléphone</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Taux (%)</th>
+                                {{-- <th scope="col">Email</th> --}}
+                                {{-- <th scope="col">Taux (%)</th> --}}
                                 <th scope="col">Action</th>
                             </tr>
                         </thead>
@@ -110,9 +110,9 @@
 
                                     <td>{{ $beneficiaire->mobile ?? '--'}}</td>
 
-                                    <td>{{ $beneficiaire->email ?? '--'}}</td>
+                                    {{-- <td>{{ $beneficiaire->email ?? '--'}}</td> --}}
 
-                                    <td>{{ $beneficiaire->part ?? '--' }}</td>
+                                    {{-- <td>{{ $beneficiaire->part ?? '--' }}</td> --}}
 
                                     <td>
                                         <a href="" data-bs-target="#showBenefModal{{ $beneficiaire->id }}" data-bs-toggle="modal"><i class="fadeIn animated bx bx-show fs-4"></i></a>
@@ -121,7 +121,7 @@
                                             <a class="mx-2" href="" data-bs-target="#editBenefModal{{ $beneficiaire->id }}" data-bs-toggle="modal"><i class="fadeIn animated bx bx-edit fs-4"></i></a>
                                         @endif
 
-                                        
+
 
                                         <a class="deleteConfirmation" data-uuid="{{ $beneficiaire->id }}"
                                             data-type="confirmation_redirect" data-placement="top"

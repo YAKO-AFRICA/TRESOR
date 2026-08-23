@@ -7,9 +7,11 @@
     <title>Mise à jour du dossier</title>
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" /> --}}
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
+
+    <link href="{{ asset('assets/css/bootstrap.min.css')}}" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -352,7 +354,7 @@
                                         </span>
                                     </div>
                                     <div class="bg-light rounded-3 py-2 px-3 mb-3 ">
-                                        <span ><i class="bi bi-people-fill me-1"></i> Bénéficiaire par defaut : </span> 
+                                        <span ><i class="bi bi-people-fill me-1"></i> Bénéficiaire par defaut : </span>
                                         <span >Fonds de soutien aux études et à la formation des orphélins</span>
                                     </div>
 
@@ -404,10 +406,10 @@
 
                                     <div class="col-12 mt-4 card section-card border">
                                         <div class="card-header py-2 px-3">
-                                            <i class="bi bi-loop me-1"></i> 4. Observations 
+                                            <i class="bi bi-loop me-1"></i> 4. Observations
                                         </div>
                                         <div class="card-body p-0">
-                                            <textarea name="observe" id="observe" class="form-control" cols="15" rows="5" placeholder="Saisissez vos observations ici..."></textarea>
+                                            <textarea name="observe" readonly id="observe" class="form-control" cols="15" rows="5" placeholder="Observations">{{ $contrat->details ?? '' }}</textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -415,17 +417,23 @@
                         </div>
                     </div>
 
-                    
+
 
                     <!-- Footer -->
                     <div class="card-footer bg-white d-flex justify-content-between align-items-center d-print-none">
-                        <span class="small text-secondary d-none d-sm-inline">
+                        {{-- <span class="small text-secondary d-none d-sm-inline">
                             <i class="bi bi-info-circle"></i> Vérifiez les informations avant de confirmer.
-                        </span>
+                        </span> --}}
+                        <button class="btn btn-danger btn-sm px-4" data-bs-toggle="modal" data-bs-target="#remarkModal"> <i class="bi bi-exclamation-triangle text-white"></i>
+                            Signaler des incohérences
+                        </button>
                         <button class="btn btn-primary-custom btn-sm px-4" id="btnSubmit">
                             Confirmer <i class="bi bi-arrow-right"></i>
                         </button>
                     </div>
+
+                    <!-- Modal de signalement -->
+                    @include('productions.link.remarkModal', ['contrat' => $contrat])
                 </div>
             </div>
         </div>
@@ -436,6 +444,8 @@
         <i class="bi bi-check-circle-fill"></i>
         <span id="toastMessage">Dossier accepté avec succès !</span>
     </div>
+
+    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
 
     <!-- SweetAlert2 (chargé avant l'usage) -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -536,6 +546,61 @@
 
             // Écouteur d'événement
             submitBtn.addEventListener('click', handleSubmit);
+        });
+    </script>
+
+    <script>
+        document.getElementById('btnSubmitRemark').addEventListener('click', function () {
+            const textarea = document.getElementById('remarkText');
+            const value = textarea.value.trim();
+            const contrat = @json($contrat);
+            const idContrat = contrat.id;
+            // alert(idContrat);
+
+            console.log("declenchement de la submission");
+            console.log(value);
+
+            if (!value) {
+                textarea.classList.add('is-invalid');
+                return;
+            }
+            textarea.classList.remove('is-invalid');
+
+            // Exemple d'appel AJAX vers le backend Laravel
+            fetch('{{ route("link.remarckStore") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ remark: value, contrat_id: idContrat }),
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+                const modal = bootstrap.Modal.getInstance(document.getElementById('remarkModal'));
+                modal.hide();
+                textarea.value = contrat.details;
+                document.getElementById('btnSubmit').classList.add('disabled');
+                document.getElementById('observe').classList.add('readonly');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Signalement envoyé',
+                    text: 'Merci. Veuillez patienter le temps que votre requête soit prise en compte.',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#0F7B4B',
+                    allowOutsideClick: false
+                })
+                .then(() => {
+                    window.location.reload();
+                });
+            })
+            .catch(err => console.error(err));
+        });
+
+        // Réinitialiser l'état invalide quand l'utilisateur retape
+        document.getElementById('remarkText').addEventListener('input', function () {
+            this.classList.remove('is-invalid');
         });
     </script>
 

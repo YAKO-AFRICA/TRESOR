@@ -28,29 +28,22 @@
 
     </div>
 
-    
+
 
 </div>
 
 <div class="ms-auto">
     <div class="d-flex justify-content-end my-4">
         <div class="btn-group gap-1 gap-md-2 gap-lg-3">
-        
-            @if ($contrat->etape != 2)
-            <form action="{{ route('prod.transmettreContrat', $contrat->id)}}" method="post" class="submitForm">
-                @csrf
-                <button type="submit" class="btn btn-primary p-1 px-3 border-0 text-center"> Transmettre</button>
-            </form>
-            @endif
 
-            <button class="btn btn-primary mx-4 border-0 text-center" style="font-size: 12px">
-                <a class="text-decoration-none" href="{{ route('prod.generate.bulletin', $contrat->id) }}" target="_blank">
-                    <i class="bx bx-download" title="Telecharger le bulletin"></i> Imprimer le Bulletin
-                </a>
+            <!-- Bouton pour ouvrir le modal  -->
+            <button class="share-btn btn btn-outline-info" onclick="openSmsModal()">
+                <i class="bi bi-share"></i>
+                Partager le lien par SMS
+                <span class="arrow">→</span>
             </button>
 
-
-            {{-- <input type=button onclick='calltouchpay("{{ $contrat->id }}")' class="btn btn-primary btn-sm text-decoration-none px-2 px-md-3" value="Payer ma première prime" /> --}}
+            @include('productions.link.sendLinkModal')
 
 
         </div>
@@ -71,10 +64,10 @@
                         <strong>N° de contrat :</strong> <span>{{ $contrat->id ?? ''}}</span>
                     </p>
                     <p>
-                        <strong>N° bullettin :</strong> <span>{{ $contrat->numBullettin ?? '' }}</span>
+                        <strong>N° Matricule :</strong> <span>{{ $contrat->numerocompte ?? '' }}</span>
                     </p>
                     <p>
-                        <center>Status : 
+                        <center>Status :
                             @if ($contrat->etape == 0)
                                 <span class="text-secondary badge rounded-pill  bg-light-secondary">Brouillon</span>
                             @elseif ($contrat->etape == 1)
@@ -99,11 +92,11 @@
 
                     <div class="list-group list-group-flush">
 
-                        <a href="javascript:;" class="list-group-item py-1 btn border-0" data-target="info-contrat">
+                        {{-- <a href="javascript:;" class="list-group-item py-1 btn border-0" data-target="info-contrat">
 
                             <i class='bx bx-folder me-2'></i><span>Detail du contrat</span>
 
-                        </a>
+                        </a> --}}
 
                         <a href="javascript:;" class="list-group-item py-2 btn border-0" data-target="edit-adherent">
 
@@ -111,11 +104,11 @@
 
                         </a>
 
-                        <a href="javascript:;" class="list-group-item py-2 btn border-0" data-target="edit-assurer">
+                        {{-- <a href="javascript:;" class="list-group-item py-2 btn border-0" data-target="edit-assurer">
 
                             <i class='bx bx-analyse me-2'></i><span>Assurés</span>
 
-                        </a>
+                        </a> --}}
 
                         <a href="javascript:;" class="list-group-item py-1 btn" data-target="edit-beneficiaire">
 
@@ -157,13 +150,13 @@
                             </p>
                         </div>
                         <h6 class="text-primary mb-0">
-                            <a class="btn btn-sm btn-outline-secondary" data-bs-target="#view-bulletin{{$doc->id}}" data-bs-toggle="modal" title="Preview"> 
+                            <a class="btn btn-sm btn-outline-secondary" data-bs-target="#view-bulletin{{$doc->id}}" data-bs-toggle="modal" title="Preview">
                                 <i class="bx bx-show"></i>
                             </a>
                             {{-- <a class="btn btn-sm btn-outline-secondary" href=""> <i class="bx bx-trash"></i></a> --}}
                         </h6>
 
-                        
+
 
                         <div class="modal fade" id="view-bulletin{{$doc->id}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
 
@@ -194,7 +187,7 @@
                                             </button>
                                         </form>
 
-                                        
+
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
 
                                     </div>
@@ -211,13 +204,13 @@
 
                 @else
 
-                    
+
 
                 @endif
 
-                
 
-                
+
+
 
             </div>
 
@@ -231,15 +224,15 @@
 
             <div class="card-body">
 
-                <section id="info-contrat" class="section-content">
+                {{-- <section id="info-contrat" class="section-content">
 
                     <h5>Modifier les Détails du Contrat</h5>
 
                     @include('productions.components.editContrat')
-                    
-                </section>
 
-                <section id="edit-adherent" class="section-content d-none">
+                </section> --}}
+
+                <section id="edit-adherent" class="section-content">
 
                     <h5>Adhérent</h5>
 
@@ -247,12 +240,12 @@
 
                 </section>
 
-                <section id="edit-assurer" class="section-content d-none">
+                {{-- <section id="edit-assurer" class="section-content d-none">
                     <h5>Assurés</h5>
 
                     @include('productions.assurer.editAssure' , ['codecontrat' => $contrat->id])
 
-                </section>
+                </section> --}}
 
                 <section id="edit-beneficiaire" class="section-content d-none">
 
@@ -269,6 +262,12 @@
 
 
 
+
+
+
+
+
+
     <script>
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -277,7 +276,7 @@
 
             const sections = document.querySelectorAll('.section-content');
 
-    
+
 
             links.forEach(link => {
 
@@ -285,13 +284,13 @@
 
                     const targetId = link.getAttribute('data-target');
 
-    
+
 
                     // Masquer toutes les sections
 
                     sections.forEach(section => section.classList.add('d-none'));
 
-    
+
 
                     // Afficher la section correspondante
 
@@ -311,12 +310,12 @@
 
     </script>
 
-    
-<script>
-    const contratInfo = {!! json_encode($contrat) !!};
 
-    console.log(contratInfo.adherent);
-</script>
+    <script>
+        const contratInfo = {!! json_encode($contrat) !!};
+
+        console.log(contratInfo.adherent);
+    </script>
 
 
 
@@ -324,6 +323,6 @@
 
 <!--end row-->
 
-    
+
 
 @endsection

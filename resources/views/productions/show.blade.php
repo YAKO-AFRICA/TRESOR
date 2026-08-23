@@ -28,7 +28,7 @@
             @endif
         @endcan
 
-        @can('Transmettre une souscription')
+        {{-- @can('Transmettre une souscription')
             @if (!in_array($contrat->etape, [2, 3]))
                 <form action="{{ route('prod.transmettreContrat', $contrat->id)}}" method="post" class="d-inline m-0 submitForm">
                     @csrf
@@ -38,7 +38,7 @@
                     </button>
                 </form>
             @endif
-        @endcan
+        @endcan --}}
 
         {{-- <a href="{{ route('prod.generate.bulletin', $contrat->id) }}" target="_blank" class="btn btn-primary btn-sm text-decoration-none px-2 px-md-3">
             <i class="bx bx-download me-1" title="Bulletin"></i>

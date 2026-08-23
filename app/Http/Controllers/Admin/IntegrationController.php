@@ -96,11 +96,54 @@ class IntegrationController extends Controller
         }
     }
 
+    // public function valider(Request $request)
+    // {
+    //     $assures = Session::get('integration_assures', []);
+    //     $enfants = Session::get('integration_enfants', []);
+
+
+    //     if (empty($assures)) {
+    //         return redirect()->route('integrations.index')
+    //             ->with('error', 'Aucune donnée à valider. Veuillez d\'abord charger les fichiers.');
+    //     }
+
+    //     try {
+    //         // Vérifier les liaisons assurés-enfants
+    //         $matriculesAssures = collect($assures)->pluck('matricule')->toArray();
+    //         $enfantsOrphelins = collect($enfants)->filter(function($enfant) use ($matriculesAssures) {
+    //             return !in_array($enfant['matricule'], $matriculesAssures);
+    //         });
+
+    //         if ($enfantsOrphelins->isNotEmpty()) {
+    //             $message = 'Attention : ' . $enfantsOrphelins->count() . ' enfant(s) n\'ont pas de correspondance avec un assuré.';
+    //             return redirect()->route('integrations.index')
+    //                 ->with('warning', $message)
+    //                 ->with('error_details', $enfantsOrphelins->map(function($e) {
+    //                     return "Enfant {$e['prenoms']} {$e['nom']} (matricule: {$e['matricule']})";
+    //                 })->toArray());
+    //         }
+
+    //         Log::info($assures);
+
+    //         $this->prepareInsertData($assures, $enfants);
+
+    //         // Nettoyer la session après validation
+    //         Session::forget(['integration_assures', 'integration_enfants', 'integration_rapport']);
+
+    //         return redirect()->route('integrations.index')
+    //             ->with('success', 'Les données ont été validées avec succès !');
+
+    //     } catch (\Exception $e) {
+    //         Log::error("Erreur lors de la validation des données : " . $e->getMessage());
+    //         return redirect()->route('integrations.index')
+    //             ->with('error', 'Erreur lors de la validation : ' . $e->getMessage());
+    //     }
+    // }
+
     public function valider(Request $request)
     {
         $assures = Session::get('integration_assures', []);
         $enfants = Session::get('integration_enfants', []);
-
 
         if (empty($assures)) {
             return redirect()->route('integrations.index')
@@ -108,33 +151,79 @@ class IntegrationController extends Controller
         }
 
         try {
+            // Variables pour stocker les éventuels avertissements
+            $warningMessage = null;
+            $errorDetails = [];
+
             // Vérifier les liaisons assurés-enfants
-            $matriculesAssures = collect($assures)->pluck('matricule')->toArray();
-            $enfantsOrphelins = collect($enfants)->filter(function($enfant) use ($matriculesAssures) {
+            $matriculesAssures = collect($assures)
+                ->pluck('matricule')
+                ->toArray();
+
+            $enfantsOrphelins = collect($enfants)->filter(function ($enfant) use ($matriculesAssures) {
                 return !in_array($enfant['matricule'], $matriculesAssures);
             });
 
+            // Si des enfants n'ont pas de parent correspondant,
             if ($enfantsOrphelins->isNotEmpty()) {
-                $message = 'Attention : ' . $enfantsOrphelins->count() . ' enfant(s) n\'ont pas de correspondance avec un assuré.';
-                return redirect()->route('integrations.index')
-                    ->with('warning', $message)
-                    ->with('error_details', $enfantsOrphelins->map(function($e) {
-                        return "Enfant {$e['prenoms']} {$e['nom']} (matricule: {$e['matricule']})";
-                    })->toArray());
+
+                $warningMessage = 'Attention : ' .
+                    $enfantsOrphelins->count() .
+                    ' enfant(s) n\'ont pas de correspondance avec un assuré.';
+
+                $errorDetails = $enfantsOrphelins->map(function ($e) {
+                    return "Enfant {$e['prenoms']} {$e['nom']} (matricule: {$e['matricule']})";
+                })->toArray();
+
+                Log::warning(
+                    $warningMessage,
+                    [
+                        'enfants_orphelins' => $enfantsOrphelins->toArray()
+                    ]
+                );
             }
 
-            Log::info($assures);
+            Log::info('Assurés à traiter :', [
+                'count' => count($assures),
+                'assures' => $assures
+            ]);
 
+            Log::info('Enfants à traiter :', [
+                'count' => count($enfants),
+                'enfants' => $enfants
+            ]);
+
+            // 
             $this->prepareInsertData($assures, $enfants);
 
             // Nettoyer la session après validation
-            Session::forget(['integration_assures', 'integration_enfants', 'integration_rapport']);
+            Session::forget([
+                'integration_assures',
+                'integration_enfants',
+                'integration_rapport'
+            ]);
 
-            return redirect()->route('integrations.index')
+            // Redirection finale
+            $redirect = redirect()->route('integrations.index')
                 ->with('success', 'Les données ont été validées avec succès !');
 
+            // Ajouter l'avertissement uniquement s'il y a des enfants orphelins
+            if ($warningMessage) {
+                $redirect->with('warning', $warningMessage)
+                    ->with('error_details', $errorDetails);
+            }
+
+            return $redirect;
+
         } catch (\Exception $e) {
-            Log::error("Erreur lors de la validation des données : " . $e->getMessage());
+
+            Log::error(
+                "Erreur lors de la validation des données : " . $e->getMessage(),
+                [
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+
             return redirect()->route('integrations.index')
                 ->with('error', 'Erreur lors de la validation : ' . $e->getMessage());
         }

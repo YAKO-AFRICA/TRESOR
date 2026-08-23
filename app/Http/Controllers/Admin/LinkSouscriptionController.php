@@ -229,6 +229,52 @@ class LinkSouscriptionController extends Controller
         return view('productions.link.success', compact('contrat'));
     }
 
+    public function remarckStore(Request $request)
+    {
+
+    Log::info("debut de traitement soumission");
+
+
+        $id = $request->contrat_id;
+
+        $contratTrouver = Contrat::where('id', $id)->first();
+
+        // Log::info("contrat trouver", $contratTrouver);
+
+
+        try {
+
+            DB::beginTransaction();
+            $contrat = Contrat::where('id', $id)->update([
+                'details' => $request->remark
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                Log::info('📥 Données reçues pour la mise à jour du contrat ID: ' . $id, $request->all()),
+                'status' => true,
+                'message' => 'Remarque mise à jour avec succès.',
+
+
+            ], 200);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            Log::error('Erreur lors de la mise à jour de la remarque', [
+                'message' => $th->getMessage(),
+                'line' => $th->getLine(),
+                'file' => $th->getFile(),
+            ]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Erreur lors de la mise à jour de la remarque.',
+                'error' => config('app.debug') ? $th->getMessage() : null,
+            ], 500);
+        }
+
+    }
+
+
 
 }
 

@@ -76,7 +76,7 @@ class ProductionController extends Controller
         set_time_limit(300);
         $allPropositions = Contrat::where('organisme', "DGTCP");
 
-        $defaultColumns = ['#','Souscripteur','Nombre d\'enfants','Date de naissance Agent', 'Date Effet', 'Prime', 'Capital', 'Status','Observations'];
+        $defaultColumns = ['#','Souscripteur','Nombre d\'enfants','Date de naissance Agent', 'Date Effet', 'Prime', 'Capital', 'Status'];
 
         $additionalColumns = [
             'Mode de Paiement' => 'modepaiement',
@@ -634,32 +634,32 @@ class ProductionController extends Controller
 
             $sexe = ($principal['civilite'] ?? '') === 'Monsieur' ? 'M' : 'F';
 
-            $assurePrincipal = Assurer::create([ 
-                'id' => $idAssure, 
-                'civilite' => $request->civilite, 
-                'nom' => $request->nom, 
-                'prenom' => $request->prenom, 
-                'filiation' => "LUIMM", 
-                'datenaissance' => $datenaissance, 
-                'lieunaissance' => $request->lieunaissance, 
-                'codecontrat' => $idContrat, 
-                'codeadherent' => $idAdherent, 
-                'sexe' => $sexe, 
-                'numeropiece' => $request->numeropiece, 
-                'naturepiece' => $request->naturepiece, 
-                'lieuresidence' => $request->lieuresidence, 
-                'profession' => $request->profession, 
-                'employeur' => $request->employeur, 
-                'pays' => $request->pays, 
-                'email' => $request->email, 
-                'telephone' => $request->telephone, 
-                'telephone1' => $request->telephone1, 
-                'mobile' => $request->mobile, 
-                'codemembre' => 0, 
-                'mobile1' => $request->mobile1, 
-                'saisieLe' => now(), 
-                'cleintegration' => $keyUniq, 
-                'saisiepar' => auth::user()->membre->idmembre, 
+            $assurePrincipal = Assurer::create([
+                'id' => $idAssure,
+                'civilite' => $request->civilite,
+                'nom' => $request->nom,
+                'prenom' => $request->prenom,
+                'filiation' => "LUIMM",
+                'datenaissance' => $datenaissance,
+                'lieunaissance' => $request->lieunaissance,
+                'codecontrat' => $idContrat,
+                'codeadherent' => $idAdherent,
+                'sexe' => $sexe,
+                'numeropiece' => $request->numeropiece,
+                'naturepiece' => $request->naturepiece,
+                'lieuresidence' => $request->lieuresidence,
+                'profession' => $request->profession,
+                'employeur' => $request->employeur,
+                'pays' => $request->pays,
+                'email' => $request->email,
+                'telephone' => $request->telephone,
+                'telephone1' => $request->telephone1,
+                'mobile' => $request->mobile,
+                'codemembre' => 0,
+                'mobile1' => $request->mobile1,
+                'saisieLe' => now(),
+                'cleintegration' => $keyUniq,
+                'saisiepar' => auth::user()->membre->idmembre,
                 ]);
 
             /*
