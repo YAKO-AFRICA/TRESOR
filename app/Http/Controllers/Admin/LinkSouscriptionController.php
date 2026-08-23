@@ -53,6 +53,7 @@ class LinkSouscriptionController extends Controller
                     'message' => 'Le contrat a déjà été Mis a jour.',
                     'count' => 0,
                     'adherentData' => null,
+                    'contratData' => null
                 ]);
             }
 
@@ -62,6 +63,7 @@ class LinkSouscriptionController extends Controller
                     'message' => 'Contrat non trouvé.',
                     'count' => 0,
                     'adherentData' => null,
+                    'contratData' => null
                 ]);
             }else{
                 $adherent = $contrat->adherent;
@@ -69,7 +71,8 @@ class LinkSouscriptionController extends Controller
                 return response()->json([
                     'status' => true,
                     'message' => 'Contrat trouver.',
-                    'adherentData' => $adherent
+                    'adherentData' => $adherent,
+                    'contratData' => $contrat
                 ]);
             }
 
@@ -153,8 +156,8 @@ class LinkSouscriptionController extends Controller
     public function edit($data)
     {
         try {
-           $matricule = $data;
-           $contrat = Contrat::where('numerocompte', $matricule)->where('refcontratsource', $matricule)->first();
+           $id = $data;
+           $contrat = Contrat::where('id', $id)->first();
 
         } catch (\Throwable $th) {
             throw $th;
