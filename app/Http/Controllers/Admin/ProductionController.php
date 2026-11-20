@@ -74,76 +74,40 @@ class ProductionController extends Controller
     {
 
         set_time_limit(300);
-        $allPropositions = Contrat::where('organisme', "DGTCP");
+        $allPropositions = Contrat::with('adherent')
+            ->withCount('beneficiaires')
+            ->where('organisme', "DGTCP");
 
         $defaultColumns = ['#','Souscripteur','Nombre d\'enfants','Date de naissance Agent', 'Date Effet', 'Prime', 'Capital', 'Status'];
-
-        $additionalColumns = [
-            'Mode de Paiement' => 'modepaiement',
-            'Organisme' => 'organisme',
-            'Prime' => 'prime',
-            'Prime Principale' => 'primepricipale',
-            'Capital' => 'capital',
-            'Surprime' => 'surprime',
-            'Date Effet' => 'dateeffet',
-            'N° Compte' => 'numerocompte',
-            'Agence' => 'agence',
-            'Saisie Le' => 'saisiele',
-            'Code Conseiller' => 'codeConseiller',
-            'Nom Agent' => 'nomagent',
-            'Duree' => 'duree',
-            'Periodicite' => 'periodicite',
-            'Code Adherent' => 'codeadherent',
-            'Est Migre' => 'estMigre',
-            'Transmis Le' => 'transmisle',
-            'Annuler Le' => 'annulerle',
-            'Accepter Le' => 'accepterle',
-            'Modifier Le' => 'modifierle',
-            'Modifier Par' => 'modifierpar',
-            'Libelle Produit' => 'libelleproduit',
-            'Personne Ressourource' => 'personneressource',
-            'Contact Ressourource' => 'contactpersonneressource',
-            'Beneficiaire Auterme' => 'beneficiaireauterme',
-            'Beneficiaire Audeces' => 'beneficiaireaudeces',
-            'Accepter Par' => 'accepterpar',
-            'Rejeter Par' => 'rejeterpar',
-            'Transmis Par' => 'transmispar',
-            'Personne Ressource 2' => 'personneressource2',
-            'Contact Ressource 2' => 'contactpersonneressource2',
-            'Code Banque' => 'codebanque',
-            'Code Guichet' => 'codeguichet',
-            'Rib' => 'rib',
-            'Id Proposition' => 'idproposition',
-            'Code Proposition' => 'codeproposition',
-            'Branche' => 'branche',
-            'Partenaire' => 'partenaire',
-            'Nom Accepter Par' => 'nomaccepterpar',
-            'Ref Contrat Source' => 'refcontratsource',
-            'Cle Integration' => 'cleintegration',
-            'Code Operation' => 'codeoperation',
-            'N° Police' => 'numeropolice',
-            'Frais Adhesion' => 'fraisadhesion',
-            'Est Paye' => 'estpaye',
-            'Pret Connexe' => 'pretconnexe',
-            'Details' => 'details',
-        ];
-        $activeColumns = session('activeColumns', []);
 
         $selectedStatus = $request->input('etape');
 
         if ($selectedStatus) {
-            // Filtrez par statut si un statut est sélectionné
             $allPropositions->where('etape', $selectedStatus);
         }
 
-        $allPropositionsFiltered = $allPropositions->get();
+        if ($request->input('observation') === 'avec') {
+            $allPropositions->whereNotNull('details')->whereRaw("TRIM(details) <> ''");
+        } elseif ($request->input('observation') === 'sans') {
+            $allPropositions->where(function ($query) {
+                $query->whereNull('details')->orWhereRaw("TRIM(details) = ''");
+            });
+        }
+
+        $observationSearch = trim((string) $request->input('recherche'));
+        if ($observationSearch !== '') {
+            $allPropositions->where('details', 'like', '%' . $observationSearch . '%');
+        }
+
+        $allPropositionsFiltered = $allPropositions
+            ->orderByDesc('id')
+            ->get();
 
 
         $datas = collect([
             'allPropositionsFiltered' => $allPropositionsFiltered,
-            'allPropositions' => $allPropositions,
         ]);
-        return view('productions.index', ['datas' => $datas, 'activeColumns' => $activeColumns, 'defaultColumns' => $defaultColumns, 'additionalColumns' => $additionalColumns]);
+        return view('productions.index', ['datas' => $datas, 'defaultColumns' => $defaultColumns]);
     }
 
     public function gestionEquip(Request $request)
@@ -264,7 +228,7 @@ class ProductionController extends Controller
                 'form_params' => $apiData,
                 'headers' => [
                     'Accept' => 'application/json',
-                    'Authorization' => 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MjExODcyLCJlbWFpbCI6ImZvcm1hdGlvbi5ibmlAYm5pLmNvbSIsIm5vbSI6IkJOSSIsImNvZGVhZ2VudCI6IkIwNDAiLCJ0eXBlbWVicmUiOm51bGwsInByZW5vbSI6IkZvcm1hdGlvbiJ9.gwxwy43VeMDcfaTpgpFbuWkxjirIBqvuXq3UZOuw_nA',
+                    'Authorization' => env('API_KEY_YAKO') ?? '',
                 ]
             ]);
 

@@ -13,37 +13,31 @@
                 </ol>
             </nav>
         </div>
-        <div class="ms-auto">
-            <div class="btn-group">
-                <button type="button" class="btn btn-primary">Reglages</button>
-
-                <button type="button" class="btn btn-primary split-bg-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
-                    <span class="visually-hidden">Toggle Dropdown</span>
-                </button>
-
-                <div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
-                    <a class="dropdown-item" href="javascript:;" data-bs-toggle="modal" data-bs-target="#columnsModalPart">Personnaliser les colonnes</a>
-                </div>
-            </div>
-        </div>
     </div>
     <!--end breadcrumb-->
 
     <div class="card">
         <div class="card-body">
             <div class="d-lg-flex align-items-center mb-4 gap-3">
-                <div class="position-relative">
-                    <form action="{{ route('prod.index') }}" method="get">
+                <form action="{{ route('prod.index') }}" method="get" class="d-flex flex-wrap align-items-center gap-2">
+                    <div class="position-relative">
                         <select id="statusFilter" name="etape" class="form-select">
                             <option value="">Tous les statuts</option>
                             {{-- <option value="0">Saisie non achevée</option> --}}
-                            <option value="1">Lien Envoyé</option>
-                            <option value="2">Accord donné</option>
-                            <option value="3">Accepté</option>
-                            <option value="4">Rejeté</option>
+                            <option value="1" {{ request('etape') == '1' ? 'selected' : '' }}>Lien Envoyé</option>
+                            <option value="2" {{ request('etape') == '2' ? 'selected' : '' }}>Accord donné</option>
+                            <option value="3" {{ request('etape') == '3' ? 'selected' : '' }}>Accepté</option>
+                            <option value="4" {{ request('etape') == '4' ? 'selected' : '' }}>Rejeté</option>
                         </select>
-                    </form>
-                </div>
+                    </div>
+                    <select name="observation" class="form-select" aria-label="Filtrer par observation">
+                        <option value="">Toutes les observations</option>
+                        <option value="avec" {{ request('observation') == 'avec' ? 'selected' : '' }}>Avec observation</option>
+                        <option value="sans" {{ request('observation') == 'sans' ? 'selected' : '' }}>Sans observation</option>
+                    </select>
+                    <input type="search" name="recherche" class="form-control" value="{{ request('recherche') }}" placeholder="Rechercher dans les observations">
+                    <button type="submit" class="btn btn-outline-primary">Filtrer</button>
+                </form>
                 <div class="ms-auto">
                     <a href="{{ route('prod.stepProduct') }}" class="btn btn-primary radius-30 mt-2 mt-lg-0">
                     <i class="bx bxs-plus-square"></i>Nouvelle proposition
@@ -61,21 +55,15 @@
                             @foreach ($defaultColumns as $defaultColumn)
                                 <th>{{ $defaultColumn }}</th>
                             @endforeach
-
-                            @foreach ($activeColumns as $colKey)
-                                <th>{{ array_search($colKey, $additionalColumns) }}</th>
-                            @endforeach
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($datas['allPropositionsFiltered'] as $item)
-                        <tr class="articleByCat" data-status="{{ strtolower($item->etape) }}" @if ($item->etape == '1' && $item->details != null) style="background-color: #E76F6F;"
-
-                        @endif>
+                        <tr class="articleByCat {{ trim((string) $item->details) !== '' ? 'table-warning' : '' }}" data-status="{{ strtolower($item->etape) }}">
                             <td>{{ $item->id }}</td>
                             <td>{{ $item->adherent->nom ?? "" }} {{ $item->adherent->prenom ?? "" }}</td>
-                            <td>{{ count($item->beneficiaires) ?? 0 }}</td>
+                            <td>{{ $item->beneficiaires_count }}</td>
                             <td>{{ $item->adherent->datenaissance ?? '' }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->dateeffet)->locale('fr')->translatedFormat('d M Y') ?? '' }}</td>
                             <td>{{ $item->prime ?? "" }}</td>
@@ -94,11 +82,14 @@
 								@endif
                             </td>
 
-
-
-                            @foreach ($activeColumns as $colKey)
-                                <td>{{ $item->$colKey ?? '' }}</td>
-                            @endforeach
+                            <td>
+                                @if (trim((string) $item->details) !== '')
+                                    <span class="badge rounded-pill text-warning bg-light-warning me-1">À suivre</span>
+                                    <span title="{{ $item->details }}">{{ Str::limit(trim($item->details), 120) }}</span>
+                                @else
+                                    <span class="text-muted">Aucune observation</span>
+                                @endif
+                            </td>
                             <td>
                                 <div class="d-flex order-actions">
                                     <a href="{{ route('prod.show', $item->id)}}">
@@ -141,42 +132,11 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="{{ count($defaultColumns) + count($activeColumns) + 1 }}">Aucun contrat trouvé</td>
+                            <td colspan="{{ count($defaultColumns) + 1 }}">Aucun contrat trouvé</td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
-
-                <!-- Modal de personnalisation des colonnes -->
-                <div class="modal fade" id="columnsModalPart" tabindex="-1" aria-labelledby="columnsModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <form action="{{ route('setting.updateColumnsPart') }}" method="POST">
-                                @csrf
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="columnsModalLabel">Personnaliser les colonnes</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    @foreach ($additionalColumns as $label => $key)
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="columns[]" value="{{ $key }}"
-                                                id="col-{{ $key }}"
-                                                {{ in_array($key, $activeColumns) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="col-{{ $key }}">{{ $label }}</label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                    <button type="submit" class="btn btn-primary">Sauvegarder</button>
-                                </div>
-                            </form>
-                        </div>
-
-
-                    </div>
-                </div>
             </div>
         </div>
     </div>
